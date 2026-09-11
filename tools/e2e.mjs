@@ -57,8 +57,15 @@ const notes = await page.$$eval('.note', nodes => nodes.map(n => n.textContent.t
 // 4. вставка кода из чата
 await page.$$eval('details', nodes => nodes.forEach(n => { n.open = true }))
 await page.$eval('#paste', el => { el.value = '<!doctype html><html><head><style>.slide{width:1160px;height:652.5px;background:#fff;padding:40px}</style></head><body><section class="slide"><h2>Проверка вставки</h2><p>Текст из чата</p></section></body></html>' })
-await page.click('#convert-paste')
-await page.waitForFunction(() => document.getElementById('summary').textContent.includes('1 слайд'), { timeout: 20000 })
+await page.$eval('#convert-paste', el => el.click())
+try {
+  await page.waitForFunction(() => document.getElementById('summary').textContent.includes('1 слайд'), { timeout: 20000 })
+} catch (err) {
+  console.log('  состояние при сбое:',
+    JSON.stringify(await page.$eval('#summary', el => el.textContent)),
+    '| статус:', JSON.stringify(await page.$eval('#status', el => el.textContent.slice(0, 120))))
+  throw err
+}
 log('вставленный код: ' + (await page.$eval('#summary', el => el.textContent)))
 
 console.log('  замечания в интерфейсе:', notes.join(' | ') || 'нет')

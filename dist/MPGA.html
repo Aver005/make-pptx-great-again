@@ -3,188 +3,629 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'none'; form-action 'none'; frame-src 'self' data: blob:; base-uri 'none'">
 <title>MPGA — презентация из нейросети в PowerPoint</title>
 <style>
 :root {
-  --paper: #f7f6f3;
-  --card: #ffffff;
-  --ink: #1b2030;
-  --muted: #6b7280;
-  --line: #e2ded4;
-  --accent: #b3402c;
-  --accent-soft: #fbeeeb;
-  --ok: #2f6f4e;
-  --warn: #9a6212;
-  --warn-soft: #fdf4e3;
-  --radius: 14px;
+  --bg: #0c0a0a;
+  --panel: rgba(255, 255, 255, .04);
+  --panel-2: rgba(255, 255, 255, .075);
+  --line: rgba(255, 255, 255, .1);
+  --line-mid: rgba(255, 255, 255, .14);
+  --line-strong: rgba(255, 255, 255, .22);
+  --ink: #f2f1ef;
+  --muted: #b3afab;
+  --faint: #918c86;
+  --accent: #ff4d2e;
+  --accent-deep: #cf3418;
+  --accent-soft: rgba(255, 77, 46, .13);
+  --indigo: #8c9bff;
+  --ok: #37d399;
+  --ok-soft: rgba(55, 211, 153, .12);
+  --warn: #f5b63f;
+  --warn-soft: rgba(245, 182, 63, .12);
+  --danger: #ff6a55;
+  --danger-soft: rgba(255, 106, 85, .12);
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .45);
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --t-fast: .14s;
+  --t: .22s;
+  --t-slow: .36s;
+  --tile-x: 96px;
+  --tile-y: 54px;
 }
 
 * { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
 
 body {
   margin: 0;
-  background: var(--paper);
+  min-height: 100vh;
+  background: var(--bg);
   color: var(--ink);
-  font: 16px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font: 16px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-.wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 64px }
+/* ---------- задний план ---------- */
 
-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px }
-.logo { font-size: 30px; font-weight: 800; letter-spacing: -0.02em }
-.logo span { color: var(--accent) }
-.version { font-size: 13px; color: var(--muted) }
-.tagline { color: var(--muted); margin: 0 0 28px; font-size: 17px }
+.backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden }
 
-.step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px }
-.step h2 { margin: 0 0 4px; font-size: 17px; letter-spacing: -0.01em }
-.step h2 b { display: inline-flex; width: 26px; height: 26px; margin-right: 8px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); align-items: center; justify-content: center; font-size: 14px }
-.step p { margin: 0 0 14px; color: var(--muted); font-size: 15px }
-.step p:last-child { margin-bottom: 0 }
-
-button {
-  font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line);
-  background: #fff; color: var(--ink); padding: 11px 18px; transition: border-color .15s, background .15s;
+.grid-plane {
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, .032) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, .032) 1px, transparent 1px);
+  background-size: var(--tile-x) var(--tile-y);
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
+  animation: drift 70s linear infinite;
 }
-button:hover { border-color: #c9c3b4 }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600 }
-button.primary:hover { background: #9c3625 }
-button.big { padding: 15px 26px; font-size: 17px; width: 100% }
-button.ghost { background: transparent }
-button:disabled { opacity: .5; cursor: default }
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) }
+  to { transform: translate3d(var(--tile-x), var(--tile-y), 0) }
+}
+
+.aura {
+  position: absolute; border-radius: 50%;
+  width: 860px; height: 860px; top: -320px; left: -200px;
+  background: radial-gradient(circle, rgba(255, 77, 46, .17), rgba(255, 77, 46, 0) 62%);
+  animation: float-a 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes float-a {
+  from { transform: translate3d(0, 0, 0) scale(1) }
+  to { transform: translate3d(140px, 90px, 0) scale(1.12) }
+}
+
+.vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(100% 70% at 50% 0%, rgba(12, 10, 10, 0) 40%, rgba(12, 10, 10, .8) 100%),
+    linear-gradient(180deg, rgba(12, 10, 10, .28), rgba(12, 10, 10, .84));
+}
+
+/* ---------- каркас ---------- */
+
+.wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 44px 24px 72px }
+
+.head { margin-bottom: 30px }
+.brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 24px }
+
+.logo {
+  font-size: 25px; font-weight: 700; letter-spacing: -.035em;
+  display: inline-flex; align-items: baseline;
+}
+.logo .dot {
+  width: 9px; height: 9px; margin-left: 4px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 18px rgba(255, 77, 46, .7);
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line-mid); background: var(--panel);
+  font-size: 13px; color: var(--muted); white-space: nowrap;
+}
+.pill[hidden] { display: none }
+.pill svg { width: 14px; height: 14px; stroke-width: 2.3 }
+.pill-ok { color: #9fe7c8; border-color: rgba(55, 211, 153, .3); background: var(--ok-soft) }
+.pill-ok svg { color: var(--ok) }
+.brand .pill { margin-left: auto }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: center }
+.hero-text { display: grid; gap: 14px }
+
+h1 {
+  margin: 0; font-size: clamp(28px, 4.2vw, 38px); line-height: 1.12;
+  letter-spacing: -.028em; font-weight: 700;
+}
+h1 em { font-style: normal; color: var(--accent) }
+.tagline { margin: 0; max-width: 60ch; color: var(--muted); font-size: 16px; line-height: 1.55 }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .84em;
+  padding: 2px 6px; border-radius: var(--r-xs);
+  background: var(--panel-2); border: 1px solid var(--line); color: #dedad4;
+}
+
+/* ---------- стопка слайдов в шапке ---------- */
+
+.deck-strip { position: relative; width: 232px; height: 136px }
+.deck-strip .mini {
+  position: absolute; top: 50%; left: 50%; width: 150px; height: 84px; border-radius: 7px;
+  background: linear-gradient(160deg, #fbfbfa, #e7e6e3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 14px 30px rgba(0, 0, 0, .45);
+  animation: hover-deck 9s ease-in-out infinite alternate;
+}
+.deck-strip .m1 { transform: translate(-50%, -50%) rotate(-8deg) translate(-26px, 10px); opacity: .5 }
+.deck-strip .m2 { transform: translate(-50%, -50%) rotate(-3deg) translate(-8px, 2px); opacity: .75; animation-delay: -3s }
+.deck-strip .m3 {
+  transform: translate(-50%, -50%) rotate(3deg) translate(14px, -8px);
+  animation-delay: -6s;
+  background:
+    linear-gradient(90deg, var(--accent) 0 42px, transparent 42px) 14px 16px / 100% 5px no-repeat,
+    linear-gradient(90deg, #c9c7c3 0 84px, transparent 84px) 14px 30px / 100% 4px no-repeat,
+    linear-gradient(90deg, #d9d7d3 0 62px, transparent 62px) 14px 40px / 100% 4px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 14px 58px / 100% 16px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 50px 58px / 100% 16px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 86px 58px / 100% 16px no-repeat,
+    #fff;
+}
+@keyframes hover-deck {
+  from { translate: 0 0 }
+  to { translate: 0 -8px }
+}
+
+.on-touch { display: none }
+
+/* ---------- секции ---------- */
+
+.step {
+  position: relative;
+  border: 1px solid var(--line-mid); border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, .035);
+  padding: 22px 30px 22px 72px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  transition: opacity var(--t-slow) var(--ease), border-color var(--t);
+}
+.step.spent { opacity: .72 }
+.step.spent:hover, .step.spent:focus-within { opacity: 1 }
+.step.waiting { opacity: .55; border-style: dashed; box-shadow: none }
+.step.waiting .btn {
+  pointer-events: none; background: none; border-style: dashed;
+  border-color: var(--line); color: var(--faint); box-shadow: none; font-weight: 500;
+}
+.result .step::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 1px; border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .26), transparent);
+}
+
+.step-head { display: flex; align-items: center; gap: 12px; margin: 0 0 10px -42px }
+.step-no {
+  flex: none; display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: var(--r-sm);
+  background: var(--accent-soft); border: 1px solid rgba(255, 77, 46, .34);
+  color: var(--accent); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+  transition: background var(--t), border-color var(--t), color var(--t);
+}
+.step.waiting .step-no, .step.spent .step-no {
+  background: var(--panel-2); border-color: var(--line); color: var(--muted);
+}
+.step .step-no.done {
+  background: var(--ok-soft); border-color: rgba(55, 211, 153, .34); color: var(--ok);
+}
+.step-no svg { width: 16px; height: 16px; stroke-width: 2.6 }
+
+h2 {
+  margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700; letter-spacing: -.018em;
+}
+  .step-note { margin: 0 0 14px; color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 60ch }
+#step-1 .compact { display: flex; align-items: center; gap: 20px; flex-wrap: wrap }
+#step-1 .compact .step-note { margin: 0; flex: 1 1 320px }
+.step-note:last-child { margin-bottom: 0 }
+
+/* ---------- кнопки ---------- */
+
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center }
+.row.center { justify-content: center }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: inherit; font-size: 15px; font-weight: 600; line-height: 1.2;
+  color: var(--ink); cursor: pointer;
+  padding: 13px 18px; min-height: 44px; border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong); background: var(--panel-2);
+  transition: transform var(--t-fast) var(--ease), background var(--t), border-color var(--t),
+    box-shadow var(--t), color var(--t);
+}
+.btn svg { width: 17px; height: 17px; flex: none; stroke-width: 2.1; transition: transform var(--t) var(--ease) }
+.btn:not(:disabled):hover { background: rgba(255, 255, 255, .1); transform: translateY(-1px) }
+.btn:not(:disabled):active { transform: translateY(0) scale(.985) }
+.btn:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px }
+.btn:disabled { opacity: .5; cursor: default }
+
+.btn.primary {
+  background: linear-gradient(180deg, #d43a18, #c43110);
+  border-color: rgba(255, 122, 92, .35); color: #fff;
+  box-shadow: 0 6px 18px rgba(196, 49, 16, .22);
+}
+.btn.primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #e04220, #d03616);
+  box-shadow: 0 10px 24px rgba(196, 49, 16, .32);
+}
+.btn.big { width: 100%; padding: 17px 22px; font-size: 18px }
+.btn.big svg { width: 19px; height: 19px; stroke-width: 1.9 }
+.btn.ghost { background: transparent; border-color: var(--line-mid); font-weight: 500 }
+.btn.copied { background: var(--ok-soft); border-color: rgba(55, 211, 153, .4); color: #a9ecce; box-shadow: none }
+#download:not(:disabled):hover svg { transform: translateY(2px) }
+
+/* ---------- зона загрузки ---------- */
 
 .drop {
-  border: 2px dashed #cfc9ba; border-radius: var(--radius); background: #fcfbf9;
-  padding: 38px 20px; text-align: center; transition: border-color .15s, background .15s;
+  position: relative; text-align: center;
+  padding: 34px 20px 28px; border-radius: var(--r-md);
+  border: 1px dashed var(--line-strong); background: rgba(255, 255, 255, .018);
+  transition: border-color var(--t), background var(--t);
 }
+.drop:hover { border-color: rgba(255, 255, 255, .3) }
+.drop:has(:focus-visible) { border-color: var(--indigo) }
 .drop.over { border-color: var(--accent); background: var(--accent-soft) }
-.drop .big-label { font-size: 18px; font-weight: 600; margin-bottom: 6px }
-.drop .hint { color: var(--muted); font-size: 14px; margin-bottom: 16px }
+.drop.over .drop-icon { transform: translateY(-4px); color: var(--accent); border-color: rgba(255, 77, 46, .45) }
+.drop-icon {
+  width: 52px; height: 52px; margin: 0 auto 14px; border-radius: var(--r-md);
+  display: grid; place-items: center; color: var(--muted);
+  border: 1px solid var(--line-mid); background: var(--panel);
+  transition: transform var(--t) var(--ease), color var(--t), border-color var(--t);
+}
+.drop-icon svg { width: 24px; height: 24px; stroke-width: 1.6 }
+.big-label { font-size: 18px; font-weight: 600; margin-bottom: 6px }
+.hint { color: var(--faint); font-size: 14px; margin-bottom: 20px }
+
+/* ---------- раскрывающиеся блоки ---------- */
+
+details.fold { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px }
+details.fold summary {
+  display: flex; align-items: flex-start; gap: 8px; cursor: pointer; list-style: none;
+  color: var(--muted); font-size: 15px; padding: 11px 0; min-height: 44px;
+  transition: color var(--t);
+}
+details.fold summary::-webkit-details-marker { display: none }
+details.fold summary:hover { color: var(--ink) }
+details.fold summary:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; border-radius: var(--r-xs) }
+summary .chev { width: 16px; height: 16px; margin-top: 4px; flex: none; color: var(--faint); transition: transform var(--t) var(--ease) }
+summary .chev svg { width: 16px; height: 16px; display: block; stroke-width: 2.3 }
+details[open] summary .chev { transform: rotate(90deg) }
+
+.fold-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-slow) var(--ease) }
+details[open] .fold-body { grid-template-rows: 1fr }
+details.fold.closing .fold-body { grid-template-rows: 0fr }
+.fold-inner { overflow: hidden; min-height: 0 }
+.fold-inner > :first-child { margin-top: 12px }
 
 textarea {
-  width: 100%; min-height: 130px; font: 13px/1.45 ui-monospace, "SFMono-Regular", Consolas, monospace;
-  border: 1px solid var(--line); border-radius: 10px; padding: 12px; resize: vertical; background: #fcfbf9; color: var(--ink);
+  width: 100%; min-height: 140px; margin-bottom: 12px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 14px; line-height: 1.6;
+  color: #dedad4; background: rgba(0, 0, 0, .28);
+  border: 1px solid var(--line-mid); border-radius: var(--r-sm); padding: 13px; resize: vertical;
+  transition: border-color var(--t), box-shadow var(--t);
 }
+textarea:hover { border-color: var(--line-strong) }
+textarea:focus {
+  outline: 2px solid transparent; border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(140, 155, 255, .2);
+}
+textarea:read-only { background: rgba(0, 0, 0, .18); color: var(--muted); cursor: default }
+textarea::placeholder { color: var(--faint) }
 
-details { margin-top: 14px }
-summary { cursor: pointer; color: var(--accent); font-size: 15px }
-summary::marker { color: var(--muted) }
-
-.status { display: none; margin-top: 16px; font-size: 15px; color: var(--muted) }
-.status.on { display: block }
-.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 8px }
+.btn svg.spin { animation: spin 1s linear infinite }
 @keyframes spin { to { transform: rotate(360deg) } }
 
-.result { display: none }
-.result.on { display: block }
+/* ---------- статус ---------- */
 
-.slides { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-top: 4px }
-.thumb { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; position: relative }
-.thumb .frame { position: relative; overflow: hidden }
+.status { display: none; margin-top: 18px; font-size: 15px; color: var(--muted) }
+.status.on { display: block; animation: rise .3s var(--ease) both }
+.status b { color: var(--ink) }
+.status.bad {
+  display: flex; gap: 11px; align-items: flex-start;
+  border: 1px solid rgba(255, 106, 85, .3); background: var(--danger-soft);
+  border-radius: var(--r-md); padding: 14px 16px; color: #f2c5bd;
+}
+.status.bad > svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--danger); stroke-width: 2.1 }
+.status .track {
+  position: relative; height: 3px; border-radius: 2px; overflow: hidden;
+  background: var(--panel-2); margin-bottom: 12px;
+}
+.status .track::after {
+  content: ""; position: absolute; inset: 0; width: 38%; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: sweep 1.15s linear infinite;
+}
+@keyframes sweep {
+  from { transform: translateX(-110%) }
+  to { transform: translateX(330%) }
+}
+
+/* ---------- результат ---------- */
+
+.result { display: none }
+.result.on { display: block; animation: rise .42s var(--ease) both }
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) }
+  to { opacity: 1; transform: none }
+}
+
+.stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px }
+.stat {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--line-mid); background: var(--panel); font-size: 14px; color: var(--muted);
+}
+.stat svg { width: 15px; height: 15px; color: var(--faint); stroke-width: 2.3 }
+.stat b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums }
+.stat.promise { border-color: rgba(55, 211, 153, .3); background: var(--ok-soft); color: #a9ecce }
+.stat.promise svg { color: var(--ok) }
+.demo-mark { color: var(--muted) }
+.demo-mark svg { color: var(--faint) }
+
+.save-as { margin: 12px 0 0; font-size: 13px; color: var(--faint) }
+
+.done { border-top: 1px solid var(--line); margin-top: 4px }
+.done ol { margin: 12px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; line-height: 1.5 }
+.done li + li { margin-top: 6px }
+
+.notes { list-style: none; margin: 16px 0 0; padding: 0 }
+.note {
+  display: flex; gap: 11px; align-items: flex-start;
+  border: 1px solid var(--line-mid); border-radius: var(--r-md);
+  padding: 14px 16px; margin-bottom: 8px; background: var(--panel); font-size: 15px; line-height: 1.5;
+  animation: rise var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms);
+}
+.note > svg { width: 17px; height: 17px; flex: none; margin-top: 3px; color: var(--faint); stroke-width: 2.1 }
+.note > div { max-width: 58ch }
+.note.warn { border-color: rgba(245, 182, 63, .28); background: var(--warn-soft) }
+.note.warn > svg { color: var(--warn) }
+.note.error { border-color: rgba(255, 106, 85, .32); background: var(--danger-soft) }
+.note.error > svg { color: var(--danger) }
+.note.good > svg { color: var(--ok) }
+.note .count { color: var(--faint) }
+.note .fix { margin-top: 12px }
+.note .fix .btn { padding: 10px 14px; font-size: 14px; min-height: 40px }
+
+/* ---------- превью ---------- */
+
+.preview { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line) }
+.preview-title {
+  margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.preview-title svg { width: 17px; height: 17px; color: var(--faint); stroke-width: 2.1 }
+.preview .step-note { font-size: 14px; margin-bottom: 16px }
+
+.slides { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 20px 16px }
+.thumb { animation: rise var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms) }
+.thumb .frame {
+  position: relative; overflow: hidden; border-radius: var(--r-sm); background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 12px 26px rgba(0, 0, 0, .45);
+  transition: box-shadow var(--t);
+}
+.thumb:hover .frame { box-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 18px 34px rgba(0, 0, 0, .55) }
 .thumb .stage { position: absolute; top: 0; left: 0; transform-origin: 0 0 }
-.thumb .no { position: absolute; right: 6px; bottom: 4px; font-size: 11px; color: var(--muted); background: #fffc; padding: 0 4px; border-radius: 4px }
+.thumb .no { margin-top: 8px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--faint) }
 .stage div, .stage img { position: absolute }
 .stage img { object-fit: fill }
 .stage .t { white-space: pre-wrap; overflow: hidden }
 
-.notes { margin: 18px 0 0; padding: 0; list-style: none }
-.note { border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; font-size: 15px; background: #fff }
-.note.warn { border-left-color: #d99a2b; background: var(--warn-soft) }
-.note.error { border-left-color: var(--accent); background: var(--accent-soft) }
-.note .fix { margin-top: 8px }
-.note .fix button { font-size: 13px; padding: 7px 12px }
+/* ---------- подвал ---------- */
 
-.done { background: #f1f7f3; border: 1px solid #cfe3d7; border-radius: var(--radius); padding: 18px 20px; margin-top: 18px }
-.done h3 { margin: 0 0 8px; font-size: 16px; color: var(--ok) }
-.done ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px }
+footer {
+  margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line);
+  color: var(--faint); font-size: 13px; line-height: 1.7;
+}
+.privacy {
+  display: flex; gap: 11px; align-items: flex-start;
+  border: 1px solid var(--line-mid); border-radius: var(--r-md);
+  background: var(--panel); padding: 14px 16px; margin-bottom: 16px; color: var(--muted); font-size: 15px;
+}
+.privacy svg { width: 18px; height: 18px; flex: none; color: var(--ok); margin-top: 2px; stroke-width: 2.1 }
+.foot-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px }
+.foot-row .btn { padding: 11px 15px; font-size: 14px }
+.legal a { color: #c8c4c0; text-underline-offset: 2px; display: inline-block; padding: 4px 0 }
+.legal a:hover { color: var(--ink) }
+a:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; border-radius: var(--r-xs) }
 
-footer { margin-top: 34px; color: var(--muted); font-size: 13px; line-height: 1.7 }
-footer a { color: var(--accent) }
-.privacy { display: flex; gap: 8px; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px }
+/* ---------- телефон ---------- */
 
 .small-screen { display: none }
-@media (max-width: 700px) {
-  .small-screen { display: block; background: var(--warn-soft); border: 1px solid #e8d5a8; border-radius: var(--radius); padding: 16px; margin-bottom: 16px; font-size: 15px }
-  .wrap { padding: 20px 14px 48px }
-  .logo { font-size: 24px }
+
+@media (max-width: 900px) {
+  .deck-strip { display: none }
+  .hero { grid-template-columns: minmax(0, 1fr) }
+}
+
+@media (max-width: 760px), (pointer: coarse) {
+  .on-touch { display: inline }
+  .on-mouse { display: none }
+}
+
+@media (max-width: 760px) {
+  .wrap { padding: 28px 16px 48px }
+  .head { margin-bottom: 28px }
+  .step { padding: 20px 18px 20px 50px; border-radius: var(--r-md); margin-bottom: 12px }
+  .step-head { align-items: flex-start; gap: 8px; margin: 0 0 10px -32px }
+  .step-no { width: 24px; height: 24px; margin-top: 2px; font-size: 13px; border-radius: 8px }
+  .step-no svg { width: 14px; height: 14px }
+  .btn { font-size: 14px }
+  .brand { margin-bottom: 20px }
+  .brand .pill { margin-left: 0 }
+  h1 { font-size: 30px }
+  h1 br { display: none }
+  h2 { font-size: 19px }
+  .drop { padding: 24px 16px 22px; border-radius: var(--r-sm) }
+  .drop-icon { width: 44px; height: 44px; margin-bottom: 12px; border-radius: var(--r-sm) }
+  .drop-icon svg { width: 21px; height: 21px }
+  .big-label { font-size: 17px }
+  .row .btn { flex: 1 1 auto }
+  .slides { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 12px }
+  .small-screen {
+    display: flex; gap: 11px; align-items: flex-start;
+    border: 1px solid rgba(245, 182, 63, .28); background: var(--warn-soft);
+    border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 16px;
+    font-size: 15px; line-height: 1.5; color: #f0dcb4;
+  }
+  .small-screen svg { width: 18px; height: 18px; flex: none; color: var(--warn); margin-top: 2px; stroke-width: 2.1 }
+  .foot-row { gap: 8px }
+  .foot-row .btn { width: 100% }
+  .foot-row > span { flex: 1 0 100% }
+  #step-1 .compact { display: block }
+  #step-1 .compact .step-note { margin-bottom: 14px }
+}
+
+@media (max-width: 420px) {
+  .logo { font-size: 23px }
+  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .status .track::after {
+    width: 100%; transform: none; animation: none; opacity: .45;
+    background: var(--accent);
+  }
 }
 
 </style>
 </head>
 <body>
-<div class="wrap">
 
-<header>
-  <div class="logo">MPGA<span>.</span></div>
-  <div class="version" id="version"></div>
-</header>
-<p class="tagline">Превращает HTML-презентацию, которую сделала нейросеть, в файл PowerPoint, где всё можно править руками.</p>
-
-<div class="small-screen">
-  Вы открыли страницу с телефона. Конвертация работает, но пользоваться удобнее на компьютере — там сразу открывается готовый файл.
+<div class="backdrop" aria-hidden="true">
+  <div class="grid-plane"></div>
+  <div class="aura aura-1"></div>
+  <div class="aura aura-2"></div>
+  <div class="aura aura-3"></div>
+  <div class="vignette"></div>
 </div>
 
-<section class="step">
-  <h2><b>1</b>Попросите нейросеть сделать презентацию</h2>
-  <p>Скопируйте текст задания, вставьте в ChatGPT, DeepSeek, GigaChat или Claude и допишите свою тему. В ответ придёт код — его и нужно сюда принести.</p>
-  <div class="row">
-    <button class="primary" id="copy-prompt">Скопировать задание для нейросети</button>
+<div class="wrap">
+
+<header class="head">
+  <div class="brand">
+    <div class="logo">MPGA<i class="dot"></i></div>
+    <span class="pill pill-ok"><i data-ui-icon="cloud-off"></i>работает без интернета</span>
   </div>
-  <details id="prompt-box"><summary>Посмотреть, что именно копируется</summary><textarea id="prompt-text" readonly rows="12"></textarea></details>
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Презентация из нейросети&nbsp;—<br> <em>в&nbsp;настоящий PowerPoint</em></h1>
+      <p class="tagline">Нейросеть присылает презентацию как веб-страницу. Здесь она превращается в&nbsp;файл PowerPoint, где текст и&nbsp;картинки правятся мышкой, как обычно.</p>
+    </div>
+    <div class="deck-strip" aria-hidden="true">
+      <span class="mini m1"></span><span class="mini m2"></span><span class="mini m3"></span>
+    </div>
+  </div>
+</header>
+
+<div class="small-screen">
+  <i data-ui-icon="smartphone"></i>
+  <div>С телефона тоже работает. Файл сохранится в&nbsp;«Загрузки»&nbsp;— открыть его можно в&nbsp;мобильном PowerPoint или переслать себе на&nbsp;компьютер.</div>
+</div>
+
+<main>
+
+<section class="step" id="step-1">
+  <div class="step-head">
+    <span class="step-no">1</span>
+    <h2>Попросите нейросеть сделать презентацию</h2>
+  </div>
+  <div class="compact">
+    <p class="step-note">Скопируйте задание, вставьте в&nbsp;чат с&nbsp;нейросетью и&nbsp;допишите свою тему. В&nbsp;ответ придёт файл&nbsp;— его загрузите на&nbsp;шаге 2.</p>
+    <button class="btn" id="copy-prompt"><i data-ui-icon="clipboard-copy"></i><span>Скопировать задание</span></button>
+  </div>
+  <details id="prompt-box" class="fold">
+    <summary><i data-ui-icon="chevron-right" class="chev"></i>Показать текст задания</summary>
+    <div class="fold-body"><div class="fold-inner">
+      <textarea id="prompt-text" readonly rows="12" spellcheck="false" aria-label="Текст задания для нейросети"></textarea>
+    </div></div>
+  </details>
 </section>
 
-<section class="step">
-  <h2><b>2</b>Принесите сюда, что прислала нейросеть</h2>
+<section class="step" id="step-2">
+  <div class="step-head">
+    <span class="step-no">2</span>
+    <h2>Загрузите файл от нейросети</h2>
+  </div>
   <div class="drop" id="drop">
-    <div class="big-label">Перетащите файл .html сюда</div>
-    <div class="hint">или нажмите кнопку и выберите его на компьютере</div>
-    <div class="row" style="justify-content:center">
-      <button class="primary" id="pick">Выбрать файл</button>
-      <button class="ghost" id="demo">Попробовать на примере</button>
+    <div class="drop-icon"><i data-ui-icon="file-code-2"></i></div>
+    <div class="big-label">
+      <span class="on-mouse">Перетащите файл <code>.html</code> сюда</span>
+      <span class="on-touch">Выберите файл <code>.html</code></span>
+    </div>
+    <div class="hint">
+      <span class="on-mouse">или выберите его на компьютере</span>
+      <span class="on-touch">он лежит в «Загрузках» или в чате с нейросетью</span>
+    </div>
+    <div class="row center">
+      <button class="btn primary" id="pick"><i data-ui-icon="folder-open"></i><span>Выбрать файл</span></button>
+      <button class="btn" id="demo"><i data-ui-icon="play"></i><span>Показать пример</span></button>
     </div>
     <input type="file" id="file" accept=".html,.htm,.txt,text/html" hidden>
   </div>
-  <details>
-    <summary>Нейросеть дала код прямо в чате, файла нет</summary>
-    <p style="margin-top:10px">Нажмите в чате «копировать» на блоке кода и вставьте его сюда.</p>
-    <textarea id="paste" placeholder="Вставьте сюда код, который начинается с <!doctype html>"></textarea>
-    <div class="row" style="margin-top:10px"><button class="primary" id="convert-paste">Сделать презентацию</button></div>
+  <details class="fold">
+    <summary><i data-ui-icon="chevron-right" class="chev"></i>Файла нет — код прямо в чате</summary>
+    <div class="fold-body"><div class="fold-inner">
+      <p class="step-note">Нажмите в чате «копировать» на блоке кода и вставьте его сюда.</p>
+      <textarea id="paste" spellcheck="false" aria-label="Код презентации из чата" placeholder="Вставьте сюда код, который начинается с <!doctype html>"></textarea>
+      <div class="row"><button class="btn primary" id="convert-paste"><i data-ui-icon="wand-sparkles"></i><span>Сделать презентацию</span></button></div>
+    </div></div>
   </details>
-  <div class="status" id="status"></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+</section>
+
+<section class="step waiting" id="step-3-waiting">
+  <div class="step-head">
+    <span class="step-no">3</span>
+    <h2>Заберите файл PowerPoint</h2>
+  </div>
+  <p class="step-note">Здесь появятся ваши слайды и&nbsp;кнопка скачивания&nbsp;— сразу после того, как файл загрузится.</p>
+  <button class="btn big" disabled><i data-ui-icon="download"></i><span>Скачать PowerPoint</span></button>
 </section>
 
 <section class="result" id="result">
-  <div class="step">
-    <h2><b>3</b>Готово — забирайте файл</h2>
-    <p id="summary"></p>
-    <button class="primary big" id="download">Скачать PowerPoint</button>
-    <div class="done">
-      <h3>Что дальше</h3>
-      <ol>
-        <li>Откройте скачанный файл двойным щелчком.</li>
-        <li>Если сверху появится жёлтая полоса «Защищённый просмотр» — нажмите «Разрешить редактирование».</li>
-        <li>Текст правится как обычно: щёлкните по нему и печатайте.</li>
-      </ol>
+  <section class="step active">
+    <div class="step-head">
+      <span class="step-no done"><i data-ui-icon="check"></i></span>
+      <h2>Заберите файл PowerPoint</h2>
+      <span class="pill demo-mark" id="demo-mark" hidden><i data-ui-icon="sparkles"></i>это пример</span>
     </div>
+    <p class="step-note" id="summary"></p>
+    <button class="btn primary big" id="download"><i data-ui-icon="download"></i><span>Скачать PowerPoint</span></button>
+    <p class="save-as" id="save-as"></p>
     <ul class="notes" id="notes"></ul>
-  </div>
-  <div class="step">
-    <h2>Как это будет выглядеть</h2>
-    <p>Это не картинка исходной страницы, а то, что реально попало в файл PowerPoint.</p>
-    <div class="slides" id="slides"></div>
-  </div>
+    <details class="fold">
+      <summary><i data-ui-icon="chevron-right" class="chev"></i>Файл скачался, но не открывается или открылся «только для чтения»</summary>
+      <div class="fold-body"><div class="fold-inner">
+        <div class="done">
+          <ol>
+            <li>Откройте скачанный файл двойным щелчком.</li>
+            <li>Если сверху появится жёлтая полоса «Защищённый просмотр» — нажмите «Разрешить редактирование».</li>
+            <li>Текст правится как обычно: щёлкните по нему и печатайте.</li>
+          </ol>
+        </div>
+      </div></div>
+    </details>
+    <div class="preview">
+      <h3 class="preview-title"><i data-ui-icon="layout-template"></i>Что попало в файл</h3>
+      <p class="step-note">Это не&nbsp;картинка исходной страницы, а&nbsp;то, что реально лежит в&nbsp;презентации.</p>
+      <div class="slides" id="slides"></div>
+    </div>
+  </section>
 </section>
+
+</main>
 
 <footer>
   <div class="privacy">
-    <span>🔒</span>
-    <span>Файл никуда не отправляется: вся работа идёт внутри вашего браузера, на этой странице нет ни одного обращения в интернет. Можно отключить сеть и проверить.</span>
+    <i data-ui-icon="shield-check"></i>
+    <span>Файл не&nbsp;уходит в&nbsp;интернет: всё считается прямо в&nbsp;браузере. Можно отключить сеть и&nbsp;проверить.</span>
   </div>
-  <div id="offline-line"></div>
-  <div id="legal"></div>
+  <div class="foot-row" id="offline-line"></div>
+  <div class="legal" id="legal"></div>
 </footer>
 
 </div>
@@ -1351,13 +1792,53 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
   const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML
   const $ = id => document.getElementById(id)
   const BUILD = window.MPGA_BUILD || { version: 'dev', date: '' }
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches
 
   let current = null
 
-  function setStatus(text, busy) {
+  /* ---------- иконки ---------- */
+
+  function iconMarkup(name, cls) {
+    const body = (window.MPGA_ICONS || {})[name]
+    if (!body) return ''
+    return `<svg class="${cls || ''}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
+      ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"' +
+      ` stroke-linejoin="round" aria-hidden="true">${body}</svg>`
+  }
+
+  function paintUiIcons(root = document) {
+    for (const node of [...root.querySelectorAll('[data-ui-icon]')]) {
+      const markup = iconMarkup(node.getAttribute('data-ui-icon'), node.className)
+      if (!markup) { node.remove(); continue }
+      const holder = document.createElement('div')
+      holder.innerHTML = markup
+      node.replaceWith(holder.firstElementChild)
+    }
+  }
+
+  /* ---------- мелочи ---------- */
+
+  function esc(text) {
+    return String(text).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+  }
+
+  function plural(n, one, few, many) {
+    const mod10 = n % 10
+    const mod100 = n % 100
+    if (mod10 === 1 && mod100 !== 11) return one
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few
+    return many
+  }
+
+  function setStatus(text, busy, alarming) {
     const box = $('status')
     box.classList.toggle('on', !!text)
-    box.innerHTML = text ? (busy ? '<span class="spinner"></span>' : '') + text : ''
+    box.classList.toggle('bad', !!alarming)
+    box.setAttribute('aria-live', alarming ? 'assertive' : 'polite')
+    box.innerHTML = text
+      ? (busy ? '<div class="track"></div>' : '') + (alarming ? iconMarkup('circle-alert') : '') +
+        (alarming ? `<div>${text}</div>` : text)
+      : ''
   }
 
   function fileName(title) {
@@ -1376,25 +1857,82 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
     setTimeout(() => URL.revokeObjectURL(url), 4000)
   }
 
-  function esc(text) {
-    return String(text).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+  async function copy(text, button, label) {
+    const old = button.innerHTML
+    button.style.minWidth = `${button.getBoundingClientRect().width}px`
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch (err) {
+      const area = document.createElement('textarea')
+      area.value = text
+      document.body.appendChild(area)
+      area.select()
+      document.execCommand('copy')
+      area.remove()
+    }
+    button.classList.add('copied')
+    button.innerHTML = `${iconMarkup('check')}<span>${esc(label || 'Скопировано')}</span>`
+    setTimeout(() => {
+      button.innerHTML = old
+      button.classList.remove('copied')
+      button.style.minWidth = ''
+    }, 2200)
+  }
+
+  /* ---------- плавное раскрытие ---------- */
+
+  function bindFolds() {
+    for (const fold of document.querySelectorAll('details.fold')) {
+      const summary = fold.querySelector('summary')
+      const body = fold.querySelector('.fold-body')
+      summary.addEventListener('click', event => {
+        if (REDUCED || !fold.open) return
+        event.preventDefault()
+        fold.classList.add('closing')
+        let closed = false
+        const done = () => {
+          if (closed) return
+          closed = true
+          fold.open = false
+          fold.classList.remove('closing')
+          body.removeEventListener('transitionend', done)
+        }
+        body.addEventListener('transitionend', done)
+        setTimeout(done, 420)
+      })
+    }
+  }
+
+  /* ---------- результат ---------- */
+
+  function layoutPreview() {
+    const host = $('slides')
+    const ir = current && current.ir
+    if (!ir) return
+    const first = host.querySelector('.frame')
+    if (!first) return
+    const width = first.clientWidth
+    if (!width) return
+    const scale = width / ir.slideW
+    for (const frame of host.querySelectorAll('.frame')) {
+      frame.style.height = `${Math.round(ir.slideH * scale)}px`
+      frame.firstElementChild.style.transform = `scale(${scale})`
+    }
   }
 
   function renderPreview(ir) {
     const host = $('slides')
     host.innerHTML = ''
-    const width = 230
-    const scale = width / ir.slideW
-    for (const slide of ir.slides) {
+    ir.slides.forEach((slide, index) => {
       const card = document.createElement('div')
       card.className = 'thumb'
+      card.style.setProperty('--i', Math.min(index, 12))
       const frame = document.createElement('div')
       frame.className = 'frame'
-      frame.style.height = `${Math.round(ir.slideH * scale)}px`
       const stage = document.createElement('div')
       stage.className = 'stage'
       stage.style.cssText =
-        `width:${ir.slideW}px;height:${ir.slideH}px;transform:scale(${scale});` +
+        `width:${ir.slideW}px;height:${ir.slideH}px;` +
         `background:${slide.background ? '#' + slide.background : '#fff'}`
 
       for (const box of slide.boxes) {
@@ -1412,7 +1950,9 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
         if (!image.data) continue
         const node = document.createElement('img')
         node.src = image.data
-        node.style.cssText = `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px`
+        node.alt = ''
+        node.style.cssText = `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
+          (image.rot ? `;transform:rotate(${image.rot}deg)` : '')
         stage.appendChild(node)
       }
       for (const text of slide.texts) {
@@ -1438,53 +1978,59 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
       num.textContent = slide.index + 1
       card.appendChild(num)
       host.appendChild(card)
-    }
+    })
+    requestAnimationFrame(layoutPreview)
   }
+
+  const NOTE_ICON = { error: 'circle-alert', warn: 'triangle-alert', info: 'info', good: 'circle-check' }
 
   function renderNotes(warnings) {
     const host = $('notes')
     host.innerHTML = ''
     const visible = warnings.filter(w => w.level !== 'info' || w.always)
     const fix = window.MPGA.fixMessage(warnings)
-    if (!visible.length) {
-      const ok = document.createElement('li')
-      ok.className = 'note'
-      ok.innerHTML = '✅ Всё перенеслось без потерь.'
-      host.appendChild(ok)
-    }
-    for (const note of visible) {
+    let index = 0
+
+    const add = (level, html) => {
       const item = document.createElement('li')
-      item.className = `note ${note.level}`
-      item.innerHTML = esc(note.text) + (note.count > 1 ? ` <span style="color:#6b7280">(${note.count} раза)</span>` : '')
+      item.className = `note ${level}`
+      item.style.setProperty('--i', index++)
+      item.innerHTML = iconMarkup(NOTE_ICON[level] || 'info') + `<div>${html}</div>`
       host.appendChild(item)
+      return item
+    }
+
+    if (!visible.length) add('good', 'Ничего не потерялось: весь текст и все картинки со страницы попали в презентацию.')
+    for (const note of visible) {
+      add(note.level === 'error' ? 'error' : 'warn',
+        esc(note.text) + (note.count > 1 ? ` <span class="count">(${note.count} раза)</span>` : ''))
     }
     if (fix) {
-      const item = document.createElement('li')
-      item.className = 'note'
-      item.innerHTML = 'Хотите переделать? Скопируйте замечания и отправьте их той же нейросети — она пришлёт исправленный файл.' +
-        '<div class="fix"><button class="primary" id="copy-fix">Скопировать замечания для нейросети</button></div>'
-      host.appendChild(item)
-      item.querySelector('#copy-fix').onclick = evt => copy(fix, evt.target, 'Скопировано — вставьте в чат')
+      const item = add('info',
+        'Что-то перенеслось не так? Скопируйте замечания и отправьте в тот же чат — нейросеть пришлёт исправленный файл.' +
+        `<div class="fix"><button class="btn" id="copy-fix">${iconMarkup('clipboard-copy')}<span>Скопировать замечания</span></button></div>`)
+      item.querySelector('#copy-fix').onclick = event =>
+        copy(fix, event.currentTarget, 'Скопировано — вставьте в чат')
     }
   }
 
-  async function copy(text, button, label) {
-    const old = button.textContent
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch (err) {
-      const area = document.createElement('textarea')
-      area.value = text
-      document.body.appendChild(area)
-      area.select()
-      document.execCommand('copy')
-      area.remove()
-    }
-    button.textContent = label || 'Скопировано'
-    setTimeout(() => { button.textContent = old }, 2200)
+  function renderSummary(ir) {
+    const slides = ir.slides.length
+    const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0)
+    const shapes = ir.slides.reduce((n, s) => n + s.boxes.length, 0)
+    const chips = [
+      ['layers', slides, plural(slides, 'слайд', 'слайда', 'слайдов')],
+      ['shapes', texts + shapes, plural(texts + shapes, 'объект', 'объекта', 'объектов')],
+    ]
+    $('summary').className = 'stats'
+    $('summary').innerHTML = chips
+      .map(([icon, value, word]) => `<span class="stat">${iconMarkup(icon)}<b>${value}</b> ${word}</span>`)
+      .join('') + '<span class="stat promise">' + iconMarkup('pencil') + 'каждый правится мышкой</span>'
   }
 
-  async function run(source, label) {
+  /* ---------- конвертация ---------- */
+
+  async function run(source, label, isDemo) {
     $('result').classList.remove('on')
     setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ''}…`, true)
     await new Promise(done => setTimeout(done, 30))
@@ -1493,25 +2039,18 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
       current = { ir, warnings }
       renderPreview(ir)
       renderNotes(warnings)
-      const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0)
-      $('summary').textContent =
-        `${ir.slides.length} ${plural(ir.slides.length, 'слайд', 'слайда', 'слайдов')}, ` +
-        `${texts} ${plural(texts, 'текстовый блок', 'текстовых блока', 'текстовых блоков')} — всё редактируется в PowerPoint.`
+      renderSummary(ir)
+      $('demo-mark').hidden = !isDemo
+      $('save-as').textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`
       setStatus('')
+      $('step-3-waiting').hidden = true
+      for (const id of ['step-1', 'step-2']) $(id).classList.add('spent')
       $('result').classList.add('on')
-      $('result').scrollIntoView({ behavior: 'smooth', block: 'start' })
+      $('result').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' })
     } catch (err) {
-      setStatus(`<b>Не получилось.</b> ${esc(err.friendly ? err.message : 'Файл не похож на презентацию: ' + err.message)}` +
-        '<br>Попросите нейросеть прислать HTML целиком, одним файлом, и попробуйте снова.')
+      setStatus(`<b>Не получилось.</b> ${esc(err.friendly ? err.message : 'Это не похоже на презентацию: ' + err.message)}` +
+        '<br>Попросите нейросеть прислать страницу целиком, одним файлом <code>.html</code>, и загрузите снова.', false, true)
     }
-  }
-
-  function plural(n, one, few, many) {
-    const mod10 = n % 10
-    const mod100 = n % 100
-    if (mod10 === 1 && mod100 !== 11) return one
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few
-    return many
   }
 
   function readFile(file) {
@@ -1523,18 +2062,23 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
     })
   }
 
+  /* ---------- сборка страницы ---------- */
+
   function bind() {
-    $('version').textContent = `версия ${BUILD.version}${BUILD.date ? ` · ${BUILD.date}` : ''}`
+    paintUiIcons()
+    bindFolds()
+
     $('prompt-text').value = window.MPGA_PROMPT || ''
 
-    $('copy-prompt').onclick = evt => copy(window.MPGA_PROMPT || '', evt.target, 'Скопировано — вставьте в чат')
+    $('copy-prompt').onclick = event =>
+      copy(window.MPGA_PROMPT || '', event.currentTarget, 'Скопировано — вставьте в чат')
     $('pick').onclick = () => $('file').click()
-    $('file').onchange = async evt => {
-      const file = evt.target.files[0]
+    $('file').onchange = async event => {
+      const file = event.target.files[0]
       if (file) run(await readFile(file), file.name)
-      evt.target.value = ''
+      event.target.value = ''
     }
-    $('demo').onclick = () => run(window.MPGA_DEMO || '', 'примера')
+    $('demo').onclick = () => run(window.MPGA_DEMO || '', 'примера', true)
     $('convert-paste').onclick = () => {
       const value = $('paste').value.trim()
       if (value.length < 40) { setStatus('Вставьте код презентации целиком — он начинается с <code>&lt;!doctype html&gt;</code>.'); return }
@@ -1542,44 +2086,61 @@ window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\
     }
 
     const drop = $('drop')
-    for (const type of ['dragenter', 'dragover']) {
-      drop.addEventListener(type, evt => { evt.preventDefault(); drop.classList.add('over') })
-    }
-    for (const type of ['dragleave', 'drop']) {
-      drop.addEventListener(type, evt => { evt.preventDefault(); drop.classList.remove('over') })
-    }
-    drop.addEventListener('drop', async evt => {
-      const file = evt.dataTransfer.files[0]
+    let dragDepth = 0
+    drop.addEventListener('dragenter', event => {
+      event.preventDefault()
+      dragDepth++
+      drop.classList.add('over')
+    })
+    drop.addEventListener('dragover', event => { event.preventDefault(); drop.classList.add('over') })
+    drop.addEventListener('dragleave', event => {
+      event.preventDefault()
+      dragDepth = Math.max(0, dragDepth - 1)
+      if (!dragDepth) drop.classList.remove('over')
+    })
+    drop.addEventListener('drop', async event => {
+      event.preventDefault()
+      dragDepth = 0
+      drop.classList.remove('over')
+      const file = event.dataTransfer.files[0]
       if (file) run(await readFile(file), file.name)
     })
 
-    $('download').onclick = async evt => {
+    $('download').onclick = async event => {
       if (!current) return
-      const button = evt.target
+      const button = event.currentTarget
+      const old = button.innerHTML
       button.disabled = true
-      button.textContent = 'Собираю файл…'
+      button.innerHTML = `${iconMarkup('loader', 'spin')}<span>Собираю файл…</span>`
       try {
         const blob = await window.MPGA.pptxBlob(current.ir, {
           title: current.ir.title, app: `MPGA ${BUILD.version}`,
         })
         saveBlob(blob, fileName(current.ir.title))
-        button.textContent = 'Скачать ещё раз'
+        button.innerHTML = `${iconMarkup('check')}<span>Скачать ещё раз</span>`
       } catch (err) {
-        button.textContent = 'Не получилось собрать файл'
+        button.innerHTML = old
+        setStatus('<b>Не получилось собрать файл.</b> Попробуйте ещё раз или перезагрузите страницу.')
       }
       button.disabled = false
     }
 
-    const offline = $('offline-line')
-    offline.innerHTML = '<button class="ghost" id="save-offline">Сохранить эту страницу на компьютер</button> ' +
-      '— чтобы работала без интернета и когда сайт недоступен.'
+    $('offline-line').innerHTML =
+      `<button class="btn ghost" id="save-offline">${iconMarkup('hard-drive-download')}<span>Сохранить страницу себе</span></button>` +
+      '<span>потом откроется даже без интернета</span>'
     $('save-offline').onclick = () => {
       saveBlob(new Blob([PRISTINE], { type: 'text/html' }), `MPGA-${BUILD.version}.html`)
     }
     $('legal').innerHTML = window.MPGA_LEGAL || ''
 
-    window.addEventListener('error', evt => {
-      setStatus(`<b>Что-то пошло не так.</b> ${esc(evt.message || '')}<br>` +
+    let pending = 0
+    new ResizeObserver(() => {
+      cancelAnimationFrame(pending)
+      pending = requestAnimationFrame(layoutPreview)
+    }).observe($('slides'))
+
+    window.addEventListener('error', event => {
+      setStatus(`<b>Что-то пошло не так.</b> ${esc(event.message || '')}<br>` +
         'Попробуйте другой файл или перезагрузите страницу.')
     })
   }

@@ -3,81 +3,144 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'none'; form-action 'none'; frame-src 'self' data: blob:; base-uri 'none'">
 <title>MPGA — презентация из нейросети в PowerPoint</title>
 <!--STYLES-->
 </head>
 <body>
-<div class="wrap">
 
-<header>
-  <div class="logo">MPGA<span>.</span></div>
-  <div class="version" id="version"></div>
-</header>
-<p class="tagline">Превращает HTML-презентацию, которую сделала нейросеть, в файл PowerPoint, где всё можно править руками.</p>
-
-<div class="small-screen">
-  Вы открыли страницу с телефона. Конвертация работает, но пользоваться удобнее на компьютере — там сразу открывается готовый файл.
+<div class="backdrop" aria-hidden="true">
+  <div class="grid-plane"></div>
+  <div class="aura aura-1"></div>
+  <div class="aura aura-2"></div>
+  <div class="aura aura-3"></div>
+  <div class="vignette"></div>
 </div>
 
-<section class="step">
-  <h2><b>1</b>Попросите нейросеть сделать презентацию</h2>
-  <p>Скопируйте текст задания, вставьте в ChatGPT, DeepSeek, GigaChat или Claude и допишите свою тему. В ответ придёт код — его и нужно сюда принести.</p>
-  <div class="row">
-    <button class="primary" id="copy-prompt">Скопировать задание для нейросети</button>
+<div class="wrap">
+
+<header class="head">
+  <div class="brand">
+    <div class="logo">MPGA<i class="dot"></i></div>
+    <span class="pill pill-ok"><i data-ui-icon="cloud-off"></i>работает без интернета</span>
   </div>
-  <details id="prompt-box"><summary>Посмотреть, что именно копируется</summary><textarea id="prompt-text" readonly rows="12"></textarea></details>
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Презентация из нейросети&nbsp;—<br> <em>в&nbsp;настоящий PowerPoint</em></h1>
+      <p class="tagline">Нейросеть присылает презентацию как веб-страницу. Здесь она превращается в&nbsp;файл PowerPoint, где текст и&nbsp;картинки правятся мышкой, как обычно.</p>
+    </div>
+    <div class="deck-strip" aria-hidden="true">
+      <span class="mini m1"></span><span class="mini m2"></span><span class="mini m3"></span>
+    </div>
+  </div>
+</header>
+
+<div class="small-screen">
+  <i data-ui-icon="smartphone"></i>
+  <div>С телефона тоже работает. Файл сохранится в&nbsp;«Загрузки»&nbsp;— открыть его можно в&nbsp;мобильном PowerPoint или переслать себе на&nbsp;компьютер.</div>
+</div>
+
+<main>
+
+<section class="step" id="step-1">
+  <div class="step-head">
+    <span class="step-no">1</span>
+    <h2>Попросите нейросеть сделать презентацию</h2>
+  </div>
+  <div class="compact">
+    <p class="step-note">Скопируйте задание, вставьте в&nbsp;чат с&nbsp;нейросетью и&nbsp;допишите свою тему. В&nbsp;ответ придёт файл&nbsp;— его загрузите на&nbsp;шаге 2.</p>
+    <button class="btn" id="copy-prompt"><i data-ui-icon="clipboard-copy"></i><span>Скопировать задание</span></button>
+  </div>
+  <details id="prompt-box" class="fold">
+    <summary><i data-ui-icon="chevron-right" class="chev"></i>Показать текст задания</summary>
+    <div class="fold-body"><div class="fold-inner">
+      <textarea id="prompt-text" readonly rows="12" spellcheck="false" aria-label="Текст задания для нейросети"></textarea>
+    </div></div>
+  </details>
 </section>
 
-<section class="step">
-  <h2><b>2</b>Принесите сюда, что прислала нейросеть</h2>
+<section class="step" id="step-2">
+  <div class="step-head">
+    <span class="step-no">2</span>
+    <h2>Загрузите файл от нейросети</h2>
+  </div>
   <div class="drop" id="drop">
-    <div class="big-label">Перетащите файл .html сюда</div>
-    <div class="hint">или нажмите кнопку и выберите его на компьютере</div>
-    <div class="row" style="justify-content:center">
-      <button class="primary" id="pick">Выбрать файл</button>
-      <button class="ghost" id="demo">Попробовать на примере</button>
+    <div class="drop-icon"><i data-ui-icon="file-code-2"></i></div>
+    <div class="big-label">
+      <span class="on-mouse">Перетащите файл <code>.html</code> сюда</span>
+      <span class="on-touch">Выберите файл <code>.html</code></span>
+    </div>
+    <div class="hint">
+      <span class="on-mouse">или выберите его на компьютере</span>
+      <span class="on-touch">он лежит в «Загрузках» или в чате с нейросетью</span>
+    </div>
+    <div class="row center">
+      <button class="btn primary" id="pick"><i data-ui-icon="folder-open"></i><span>Выбрать файл</span></button>
+      <button class="btn" id="demo"><i data-ui-icon="play"></i><span>Показать пример</span></button>
     </div>
     <input type="file" id="file" accept=".html,.htm,.txt,text/html" hidden>
   </div>
-  <details>
-    <summary>Нейросеть дала код прямо в чате, файла нет</summary>
-    <p style="margin-top:10px">Нажмите в чате «копировать» на блоке кода и вставьте его сюда.</p>
-    <textarea id="paste" placeholder="Вставьте сюда код, который начинается с <!doctype html>"></textarea>
-    <div class="row" style="margin-top:10px"><button class="primary" id="convert-paste">Сделать презентацию</button></div>
+  <details class="fold">
+    <summary><i data-ui-icon="chevron-right" class="chev"></i>Файла нет — код прямо в чате</summary>
+    <div class="fold-body"><div class="fold-inner">
+      <p class="step-note">Нажмите в чате «копировать» на блоке кода и вставьте его сюда.</p>
+      <textarea id="paste" spellcheck="false" aria-label="Код презентации из чата" placeholder="Вставьте сюда код, который начинается с <!doctype html>"></textarea>
+      <div class="row"><button class="btn primary" id="convert-paste"><i data-ui-icon="wand-sparkles"></i><span>Сделать презентацию</span></button></div>
+    </div></div>
   </details>
-  <div class="status" id="status"></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+</section>
+
+<section class="step waiting" id="step-3-waiting">
+  <div class="step-head">
+    <span class="step-no">3</span>
+    <h2>Заберите файл PowerPoint</h2>
+  </div>
+  <p class="step-note">Здесь появятся ваши слайды и&nbsp;кнопка скачивания&nbsp;— сразу после того, как файл загрузится.</p>
+  <button class="btn big" disabled><i data-ui-icon="download"></i><span>Скачать PowerPoint</span></button>
 </section>
 
 <section class="result" id="result">
-  <div class="step">
-    <h2><b>3</b>Готово — забирайте файл</h2>
-    <p id="summary"></p>
-    <button class="primary big" id="download">Скачать PowerPoint</button>
-    <div class="done">
-      <h3>Что дальше</h3>
-      <ol>
-        <li>Откройте скачанный файл двойным щелчком.</li>
-        <li>Если сверху появится жёлтая полоса «Защищённый просмотр» — нажмите «Разрешить редактирование».</li>
-        <li>Текст правится как обычно: щёлкните по нему и печатайте.</li>
-      </ol>
+  <section class="step active">
+    <div class="step-head">
+      <span class="step-no done"><i data-ui-icon="check"></i></span>
+      <h2>Заберите файл PowerPoint</h2>
+      <span class="pill demo-mark" id="demo-mark" hidden><i data-ui-icon="sparkles"></i>это пример</span>
     </div>
+    <p class="step-note" id="summary"></p>
+    <button class="btn primary big" id="download"><i data-ui-icon="download"></i><span>Скачать PowerPoint</span></button>
+    <p class="save-as" id="save-as"></p>
     <ul class="notes" id="notes"></ul>
-  </div>
-  <div class="step">
-    <h2>Как это будет выглядеть</h2>
-    <p>Это не картинка исходной страницы, а то, что реально попало в файл PowerPoint.</p>
-    <div class="slides" id="slides"></div>
-  </div>
+    <details class="fold">
+      <summary><i data-ui-icon="chevron-right" class="chev"></i>Файл скачался, но не открывается или открылся «только для чтения»</summary>
+      <div class="fold-body"><div class="fold-inner">
+        <div class="done">
+          <ol>
+            <li>Откройте скачанный файл двойным щелчком.</li>
+            <li>Если сверху появится жёлтая полоса «Защищённый просмотр» — нажмите «Разрешить редактирование».</li>
+            <li>Текст правится как обычно: щёлкните по нему и печатайте.</li>
+          </ol>
+        </div>
+      </div></div>
+    </details>
+    <div class="preview">
+      <h3 class="preview-title"><i data-ui-icon="layout-template"></i>Что попало в файл</h3>
+      <p class="step-note">Это не&nbsp;картинка исходной страницы, а&nbsp;то, что реально лежит в&nbsp;презентации.</p>
+      <div class="slides" id="slides"></div>
+    </div>
+  </section>
 </section>
+
+</main>
 
 <footer>
   <div class="privacy">
-    <span>🔒</span>
-    <span>Файл никуда не отправляется: вся работа идёт внутри вашего браузера, на этой странице нет ни одного обращения в интернет. Можно отключить сеть и проверить.</span>
+    <i data-ui-icon="shield-check"></i>
+    <span>Файл не&nbsp;уходит в&nbsp;интернет: всё считается прямо в&nbsp;браузере. Можно отключить сеть и&nbsp;проверить.</span>
   </div>
-  <div id="offline-line"></div>
-  <div id="legal"></div>
+  <div class="foot-row" id="offline-line"></div>
+  <div class="legal" id="legal"></div>
 </footer>
 
 </div>

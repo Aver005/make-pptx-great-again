@@ -75,6 +75,9 @@ if (withRender) {
     const box = await page.evaluate(index => {
       const frame = window.__frame
       const el = frame.contentDocument.querySelectorAll('.mpga-slide-root')[index]
+      for (const node of document.querySelectorAll('.wrap, .backdrop')) node.style.visibility = 'hidden'
+      document.body.style.background = '#fff'
+      window.scrollTo(0, 0)
       frame.style.left = '0px'
       frame.style.top = '0px'
       frame.style.zIndex = '9999'
