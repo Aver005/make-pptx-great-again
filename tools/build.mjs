@@ -20,7 +20,16 @@ const ENGINE = [
 ]
 
 const promptSource = read('ПРОМПТ.md')
-const prompt = promptSource.split('---НАЧАЛО---')[1].split('---КОНЕЦ---')[0].trim()
+const promptMatch = promptSource.match(/^---НАЧАЛО---\s*$([\s\S]*?)^---КОНЕЦ---\s*$/m)
+if (!promptMatch) {
+  console.error('сборка остановлена: в ПРОМПТ.md не найдены строки-маркеры ---НАЧАЛО--- и ---КОНЕЦ---')
+  process.exit(1)
+}
+const prompt = promptMatch[1].trim()
+if (prompt.length < 500) {
+  console.error(`сборка остановлена: задание для нейросети вырезано неверно — ${prompt.length} символов`)
+  process.exit(1)
+}
 const demo = read('examples/demo.html')
 
 const legal = `

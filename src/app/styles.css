@@ -78,7 +78,8 @@ summary::marker { color: var(--muted) }
 .thumb .frame { position: relative; overflow: hidden }
 .thumb .stage { position: absolute; top: 0; left: 0; transform-origin: 0 0 }
 .thumb .no { position: absolute; right: 6px; bottom: 4px; font-size: 11px; color: var(--muted); background: #fffc; padding: 0 4px; border-radius: 4px }
-.stage div { position: absolute }
+.stage div, .stage img { position: absolute }
+.stage img { object-fit: fill }
 .stage .t { white-space: pre-wrap; overflow: hidden }
 
 .notes { margin: 18px 0 0; padding: 0; list-style: none }
