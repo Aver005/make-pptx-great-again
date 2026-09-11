@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="mpga-contract" content="1">
+<title>Как работает поиск в интернете</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef0f2;font-family:Arial,sans-serif;color:#1b2030}
+.slide{width:1160px;height:652.5px;position:relative;overflow:hidden;background:#fff;
+       margin:0 auto 24px;padding:48px 64px;border:1px solid #dcdfe3}
+.slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:#254c6e}
+.ey{font-size:11px;font-weight:bold;letter-spacing:.14em;color:#254c6e;text-transform:uppercase;margin-bottom:12px}
+h1{font-size:52px;line-height:1.04;margin:0 0 16px}
+h2{font-size:34px;line-height:1.1;margin:0 0 20px}
+p{font-size:17px;line-height:1.45;color:#4a5262;margin:0 0 12px}
+.lead{background:#f5f7fa;border-left:5px solid #254c6e;padding:14px 20px;font-size:15px;color:#4a5262}
+.num{position:absolute;right:32px;bottom:20px;font-size:11px;color:#8b93a1}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+.card{background:#f7f9fb;border:1px solid #dbe2e9;padding:22px;height:170px;display:flex;
+      flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.card i{width:26px;height:26px;color:#254c6e;margin-bottom:12px;stroke-width:1.8}
+.card b{font-size:17px}
+.card small{display:block;color:#6b7481;font-size:13px;line-height:1.35;margin-top:8px}
+.author{position:absolute;left:64px;bottom:48px;font-size:14px;color:#6b7481}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.step-item{border:1px solid #dbe2e9;background:#f7f9fb;padding:16px 18px}
+.step-item b{font-size:16px;color:#254c6e}
+.step-item span{display:block;font-size:13px;color:#6b7481;margin-top:5px;line-height:1.35}
+</style>
+</head>
+<body>
+<main>
+
+<section class="slide">
+  <div class="ey">Учебная презентация</div>
+  <h1>Как работает поиск<br>в интернете</h1>
+  <p style="font-size:20px;max-width:760px">От запроса в строке браузера до списка ссылок проходит меньше секунды — и три больших этапа работы.</p>
+  <div class="author">Пример презентации, собранной через MPGA</div>
+  <div class="num">1</div>
+</section>
+
+<section class="slide">
+  <div class="ey">Слайд 2 · Устройство</div>
+  <h2>Три части поисковой системы</h2>
+  <div class="lead">Поисковик не ищет по интернету в момент запроса. Он ищет по своей заранее собранной копии — индексу.</div>
+  <div class="cards">
+    <div class="card"><i data-lucide="globe"></i><b>Робот</b><small>Обходит сайты и скачивает страницы</small></div>
+    <div class="card"><i data-lucide="database"></i><b>Индекс</b><small>Хранит слова и адреса страниц</small></div>
+    <div class="card"><i data-lucide="search"></i><b>Поиск</b><small>Отбирает и ранжирует ответы</small></div>
+  </div>
+  <div class="num">2</div>
+</section>
+
+<section class="slide">
+  <div class="ey">Слайд 3 · Процесс</div>
+  <h2>Путь запроса</h2>
+  <div class="lead">Запрос превращается в набор слов, слова находятся в индексе, а страницы выстраиваются по оценке полезности.</div>
+  <div style="margin-top:18px">
+  <svg viewBox="0 0 1000 260" style="width:100%;height:260px">
+    <rect x="10" y="70" width="210" height="110" rx="10" fill="#f5f7fa" stroke="#254c6e" stroke-width="3"/>
+    <text x="115" y="120" text-anchor="middle" font-size="17" font-weight="700" fill="#1b2030">Запрос</text>
+    <text x="115" y="145" text-anchor="middle" font-size="13" fill="#6b7481">слова пользователя</text>
+    <path d="M232 125H288" stroke="#6f8ca4" stroke-width="4"/><path d="M274 112l18 13-18 13" fill="none" stroke="#6f8ca4" stroke-width="4"/>
+    <rect x="300" y="70" width="210" height="110" rx="10" fill="#f5f7fa" stroke="#254c6e" stroke-width="3"/>
+    <text x="405" y="120" text-anchor="middle" font-size="17" font-weight="700" fill="#1b2030">Индекс</text>
+    <text x="405" y="145" text-anchor="middle" font-size="13" fill="#6b7481">где встречаются слова</text>
+    <path d="M522 125H578" stroke="#6f8ca4" stroke-width="4"/><path d="M564 112l18 13-18 13" fill="none" stroke="#6f8ca4" stroke-width="4"/>
+    <rect x="590" y="70" width="210" height="110" rx="10" fill="#f5f7fa" stroke="#254c6e" stroke-width="3"/>
+    <text x="695" y="120" text-anchor="middle" font-size="17" font-weight="700" fill="#1b2030">Оценка</text>
+    <text x="695" y="145" text-anchor="middle" font-size="13" fill="#6b7481">насколько страница полезна</text>
+    <path d="M812 125H868" stroke="#6f8ca4" stroke-width="4"/><path d="M854 112l18 13-18 13" fill="none" stroke="#6f8ca4" stroke-width="4"/>
+    <circle cx="935" cy="125" r="55" fill="#e7eef5" stroke="#254c6e" stroke-width="3"/>
+    <text x="935" y="131" text-anchor="middle" font-size="15" font-weight="700" fill="#1b2030">Ответ</text>
+  </svg>
+  </div>
+  <div class="num">3</div>
+</section>
+
+<section class="slide">
+  <div class="ey">Слайд 4 · Выводы</div>
+  <h2>Что стоит запомнить</h2>
+  <div class="steps">
+    <div class="step-item"><b>Поиск идёт по индексу</b><span>Страница, которую робот не обошёл, в результатах не появится.</span></div>
+    <div class="step-item"><b>Порядок ссылок — это оценка</b><span>Первое место означает оценку алгоритма, а не истину.</span></div>
+    <div class="step-item"><b>Слова запроса важны</b><span>Точные термины дают точные ответы, общие слова — общие.</span></div>
+    <div class="step-item"><b>Источник нужно проверять</b><span>Автор, дата и происхождение текста важнее позиции в выдаче.</span></div>
+  </div>
+  <div class="lead" style="margin-top:24px">Поисковая система экономит время, но ответственность за выбор источника остаётся на человеке.</div>
+  <div class="num">4</div>
+</section>
+
+</main>
+</body>
+</html>
