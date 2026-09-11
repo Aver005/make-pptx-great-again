@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Сетевые информационные ресурсы</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --ink:#321e48;
+    --blue:#43637e;
+    --deep:#254c6e;
+    --mint:#65dcd5;
+    --muted:#687687;
+    --soft:#8b96a5;
+    --line:#d5dde6;
+    --panel:#f7f9fb;
+    --bg:#f3f5f4;
+    --paper:#fcfdfc;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  .deck{padding:30px 0 60px}
+
+  .slide{
+    width:min(1160px,calc(100vw - 40px));
+    aspect-ratio:16/9;
+    background:var(--paper);
+    margin:0 auto 28px;
+    border:1px solid var(--line);
+    box-shadow:0 10px 28px #00000012;
+    position:relative;
+    overflow:hidden;
+    padding:44px 62px;
+  }
+  .slide:before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--blue);
+  }
+
+  .ey{
+    font-size:11px;font-weight:bold;letter-spacing:.14em;
+    color:var(--blue);text-transform:uppercase;margin-bottom:10px;
+  }
+  h1{color:var(--ink);font-size:46px;margin:0 0 14px;line-height:1.05}
+  h2{color:var(--ink);font-size:32px;margin:0 0 18px;line-height:1.08}
+  p{font-size:16px;line-height:1.4}
+
+  .num{position:absolute;right:30px;bottom:17px;font-size:11px;color:var(--soft)}
+  .src{
+    position:absolute;left:62px;bottom:17px;font-size:10px;
+    color:var(--soft);max-width:72%;
+  }
+
+  .explain{
+    margin:14px 0 0;padding:12px 18px;background:var(--panel);
+    border-left:4px solid var(--deep);color:#536273;font-size:13px;line-height:1.45;
+  }
+
+  .lucide{width:22px;height:22px;stroke-width:1.8;display:block;margin:0 auto 9px;color:var(--blue)}
+
+  /* --- cards --- */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    padding:18px 20px;height:132px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+  }
+  .card b{font-size:16px;line-height:1.18}
+  .card small{display:block;color:var(--muted);font-size:12px;line-height:1.3;margin-top:7px}
+  .cards .card:nth-child(1){background:#f2f6f8}
+  .cards .card:nth-child(2){background:#eef7f6}
+  .cards .card:nth-child(3){background:#f4f1f8}
+  .cards .card:nth-child(4){background:#f3f5f8}
+  .cards .card:nth-child(5){background:#edf7f5}
+  .cards .card:nth-child(6){background:#f5f3f7}
+
+  /* --- visual --- */
+  .visual{height:290px}
+  svg{display:block;width:100%;height:100%}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:center}
+  .list{display:grid;gap:11px}
+  .item{border:1px solid var(--line);background:var(--panel);padding:13px 16px}
+  .item b{font-size:15px}
+  .item span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* --- resource map (slide 1) --- */
+  .resource-map{position:relative;height:300px;margin-top:8px}
+  .resource-map .n{
+    position:absolute;width:205px;height:74px;background:var(--panel);
+    border:1px solid #cbd5df;border-radius:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:10px 14px;
+  }
+  .resource-map .n i{width:20px;height:20px;margin:0 0 6px;color:var(--blue);stroke-width:1.8}
+  .resource-map .n b{font-size:13px;line-height:1.12;color:var(--ink)}
+  .resource-map .n1{left:2%;top:12px}
+  .resource-map .n2{left:50%;top:0;transform:translateX(-50%)}
+  .resource-map .n3{right:2%;top:12px}
+  .resource-map .n4{left:15%;bottom:4px}
+  .resource-map .n5{right:15%;bottom:4px}
+  .resource-map .core{
+    position:absolute;left:50%;top:116px;transform:translateX(-50%);
+    width:275px;height:96px;border-radius:50%;
+    background:#edf4f9;border:4px solid var(--blue);
+    display:flex;align-items:center;justify-content:center;text-align:center;
+  }
+  .resource-map .core span{
+    font-size:18px;font-weight:800;letter-spacing:.03em;color:var(--ink);white-space:nowrap;
+  }
+
+  /* --- source map (slide 4) --- */
+  .source-map{position:relative;height:282px;margin-top:10px}
+  .source-map .s{
+    position:absolute;width:225px;height:68px;background:var(--panel);
+    border:1px solid #cbd5df;border-radius:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:8px 14px;
+  }
+  .source-map .s i{width:21px;height:21px;margin:0 0 5px;color:var(--blue);stroke-width:1.8}
+  .source-map .s b{font-size:13px;line-height:1.12;color:var(--ink)}
+  .source-map .s1{left:4%;top:15px}
+  .source-map .s2{right:4%;top:15px}
+  .source-map .s3{left:4%;bottom:8px}
+  .source-map .s4{right:4%;bottom:8px}
+  .source-map .process{
+    position:absolute;left:50%;top:78px;transform:translateX(-50%);
+    width:250px;height:125px;border-radius:22px;background:var(--blue);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  }
+  .source-map .step{
+    height:25px;min-width:120px;border-radius:13px;background:var(--panel);
+    color:var(--ink);font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* --- steps (slide 5) --- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:25px}
+  .step-card{
+    min-height:145px;border:1px solid;border-radius:12px;padding:18px;
+    text-align:center;background:var(--panel);
+  }
+  .step-card .step-num{font-size:25px;font-weight:800;color:var(--ink)}
+  .step-card b{display:block;margin-top:6px;font-size:15px}
+  .step-card span{display:block;margin-top:9px;color:#657383;font-size:12px;line-height:1.35}
+  .step-card:nth-child(1){background:#f1f6f8;border-color:#d8e2e8}
+  .step-card:nth-child(2){background:#eef7f5;border-color:#d5e8e5}
+  .step-card:nth-child(3){background:#f5f1f8;border-color:#e1d8e8}
+  .step-card:nth-child(4){background:#f3f5f7;border-color:#dbe1e6}
+  .flow-line{
+    margin-top:22px;display:flex;align-items:center;justify-content:center;gap:10px;
+    color:var(--blue);font-size:13px;font-weight:700;
+  }
+
+  /* --- slide 6 dark cards --- */
+  .dark-item{background:var(--ink);border-color:var(--ink);color:#fff}
+  .dark-item b{color:#fff}
+  .dark-item span{color:#e9e4ef}
+
+  /* --- slide 8 conclusion cards --- */
+  .concl{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+  .concl-card{
+    background:var(--panel);border:1px solid var(--line);
+    padding:22px 20px;min-height:205px;text-align:center;
+  }
+  .concl-card .concl-num{font-size:28px;color:var(--blue);margin-bottom:14px}
+  .concl-card b{font-size:18px}
+  .concl-card p{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .concl-card:nth-child(1){border-top:6px solid var(--deep)}
+  .concl-card:nth-child(2){border-top:6px solid var(--blue)}
+  .concl-card:nth-child(3){border-top:6px solid var(--ink)}
+  .concl-final{
+    margin-top:22px;background:#edf4f9;border:1px solid #cbd8e3;
+    padding:18px 24px;text-align:center;font-size:18px;font-weight:700;color:var(--blue);
+  }
+
+  /* --- sources (slide 9) --- */
+  .four{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mini{padding:15px;border-left:5px solid #6f8ca4;background:#f5f8fa}
+  .mini b{font-size:15px}
+  .mini span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+  .src-note{
+    margin-top:25px;padding:16px;background:#f5f8fa;
+    border-left:5px solid var(--deep);font-size:13px;
+  }
+
+  /* --- thanks slide --- */
+  .thanks-wrap{
+    height:100%;display:flex;align-items:center;justify-content:center;
+    gap:85px;margin-top:-12px;
+  }
+  .thanks-copy{text-align:left}
+  .thanks-copy .tiny{
+    font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--blue);font-weight:700;margin-bottom:18px;
+  }
+  .thanks-copy h1{font-size:55px;line-height:.98;margin:0 0 18px;color:var(--ink)}
+  .thanks-copy p{font-size:17px;color:#5b6977;line-height:1.4}
+  .thanks-line{display:flex;align-items:center;gap:12px;margin-top:22px}
+  .thanks-line span{display:block;width:65px;height:3px;background:var(--mint);border-radius:3px}
+  .thanks-line i{width:25px;height:25px;color:var(--blue)}
+
+  .cat-card{
+    position:relative;width:280px;height:220px;border-radius:30px;
+    background:#edf4f9;border:2px solid #cbd8e3;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 30px #321e4812;
+  }
+  .cat-face{
+    position:relative;width:145px;height:125px;
+    border-radius:48% 48% 44% 44%;
+    background:var(--mint);border:3px solid var(--blue);z-index:1;
+  }
+  .cat-ear{
+    position:absolute;top:33px;width:62px;height:62px;
+    background:var(--mint);border:3px solid var(--blue);
+    transform:rotate(45deg);z-index:0;
+  }
+  .cat-ear.left{left:55px}
+  .cat-ear.right{right:55px}
+  .cat-eye{position:absolute;top:47px;width:10px;height:14px;border-radius:50%;background:var(--ink)}
+  .cat-eye.e1{left:40px}
+  .cat-eye.e2{right:40px}
+  .cat-nose{
+    position:absolute;left:67px;top:67px;width:10px;height:8px;
+    background:var(--ink);transform:rotate(45deg);border-radius:2px;
+  }
+  .cat-mouth{position:absolute;left:72px;top:75px;width:2px;height:12px;background:var(--ink)}
+  .whisk{position:absolute;width:37px;height:2px;background:var(--blue)}
+  .w1{left:3px;top:70px;transform:rotate(8deg)}
+  .w2{left:1px;top:80px;transform:rotate(-4deg)}
+  .w3{right:3px;top:70px;transform:rotate(-8deg)}
+  .w4{right:1px;top:80px;transform:rotate(4deg)}
+  .cat-caption{
+    position:absolute;bottom:18px;font-size:12px;font-weight:700;color:var(--blue);
+  }
+
+  /* --- mobile --- */
+  @media(max-width:800px){
+    .slide{aspect-ratio:auto;min-height:620px;padding:34px 40px}
+    .cards,.cols,.four{grid-template-columns:1fr}
+    .concl{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr 1fr}
+    .thanks-wrap{flex-direction:column;gap:30px;margin-top:0}
+    .thanks-copy h1{font-size:38px}
+    h2{font-size:27px}
+    .visual{height:250px}
+  }
+
+  /* --- print: один слайд = одна страница --- */
+  @media print{
+    @page{size:13.333in 7.5in;margin:0}
+    body{background:#fff}
+    .deck{padding:0}
+    .slide{
+      width:13.333in;height:7.5in;
+      margin:0;border:none;box-shadow:none;
+      page-break-after:always;break-after:page;
+      padding:44px 62px;
+    }
+    .slide:last-child{page-break-after:auto;break-after:auto}
+  }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <!-- СЛАЙД 1 -->
+  <section class="slide">
+    <div class="ey">Слайд 1 · Понятие</div>
+    <h2>Сетевые информационные ресурсы</h2>
+    <div class="explain">Сетевые информационные ресурсы — цифровые ресурсы, доступ к которым осуществляется по компьютерной сети.</div>
+    <div class="resource-map">
+      <div class="n n1"><i data-lucide="library"></i><b>Электронные библиотеки</b></div>
+      <div class="n n2"><i data-lucide="database"></i><b>Базы данных</b></div>
+      <div class="n n3"><i data-lucide="list"></i><b>Электронные каталоги</b></div>
+      <div class="n n4"><i data-lucide="file-text"></i><b>Сетевые документы</b></div>
+      <div class="n n5"><i data-lucide="globe"></i><b>Веб-сайты и порталы</b></div>
+      <div class="core"><span>СЕТЕВОЙ РЕСУРС</span></div>
+    </div>
+    <div class="src">Левин Г. Л. Сетевые информационные ресурсы как объект библиографирования // Библиотековедение. 2017. Т. 66, № 4. С. 396–402.</div>
+    <div class="num">1</div>
+  </section>
+
+  <!-- СЛАЙД 2 -->
+  <section class="slide">
+    <div class="ey">Слайд 2 · Классификация</div>
+    <h2>Основные группы сетевых ресурсов</h2>
+    <div class="explain">Разные типы ресурсов решают разные задачи: одни обеспечивают поиск и навигацию, другие — хранение документов или доступ к структурированным данным. Поэтому сетевую среду целесообразно рассматривать как совокупность взаимосвязанных ресурсов.</div>
+    <div class="cards">
+      <div class="card"><i data-lucide="globe"></i><b>Веб-сайты и порталы</b><small>Многофункциональные сетевые системы</small></div>
+      <div class="card"><i data-lucide="library"></i><b>Электронные библиотеки</b><small>Собрания и коллекции документов</small></div>
+      <div class="card"><i data-lucide="database"></i><b>Базы данных</b><small>Организованные массивы данных</small></div>
+      <div class="card"><i data-lucide="list"></i><b>Библиографические ресурсы</b><small>Каталоги, указатели и записи</small></div>
+      <div class="card"><i data-lucide="file-text"></i><b>Сетевые документы</b><small>Публикации и издания в цифровой форме</small></div>
+      <div class="card"><i data-lucide="search"></i><b>Веб-сервисы</b><small>Сетевые функции и информационные услуги</small></div>
+    </div>
+    <div class="src">По Г. Л. Левину: сайты и порталы, электронные библиотеки, коллекции, веб-сервисы, базы данных и сетевые электронные документы.</div>
+    <div class="num">2</div>
+  </section>
+
+  <!-- СЛАЙД 3 -->
+  <section class="slide">
+    <div class="ey">Слайд 3 · Электронная библиотека</div>
+    <h2>От цифровой коллекции к документу</h2>
+    <div class="explain">Электронная библиотека связывает коллекцию цифровых документов с инструментами поиска. Пользователь работает не с массивом файлов напрямую, а с каталогом и библиографическими данными, которые ведут к конкретному документу.</div>
+    <div class="visual" style="display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 900 290" style="max-width:900px">
+        <rect x="90" y="48" width="215" height="185" fill="#f4f7f9" stroke="#254c6e" stroke-width="4" rx="10"/>
+        <g stroke="#9aabba" stroke-width="4"><line x1="112" y1="108" x2="283" y2="108"/><line x1="112" y1="170" x2="283" y2="170"/></g>
+        <g fill="#d2dce5" stroke="#9eabb8">
+          <rect x="118" y="64" width="20" height="44"/><rect x="145" y="57" width="25" height="51"/><rect x="177" y="69" width="18" height="39"/><rect x="202" y="61" width="27" height="47"/><rect x="238" y="66" width="19" height="42"/><rect x="264" y="58" width="19" height="50"/>
+          <rect x="118" y="122" width="24" height="42"/><rect x="150" y="130" width="18" height="34"/><rect x="178" y="119" width="27" height="45"/><rect x="214" y="127" width="18" height="37"/><rect x="242" y="121" width="25" height="43"/>
+        </g>
+        <text x="197" y="263" text-anchor="middle" font-family="Arial" font-size="14" font-weight="700">ЦИФРОВАЯ КОЛЛЕКЦИЯ</text>
+        <path d="M335 140H420" stroke="#6f8ca4" stroke-width="5"/>
+        <path d="M404 125l20 15-20 15" fill="none" stroke="#6f8ca4" stroke-width="5"/>
+        <rect x="450" y="48" width="360" height="185" rx="10" fill="#fff" stroke="#cbd5df" stroke-width="2"/>
+        <text x="475" y="78" font-family="Arial" font-size="14" font-weight="700">ЭЛЕКТРОННЫЙ КАТАЛОГ</text>
+        <rect x="475" y="93" width="310" height="38" rx="4" fill="#fff" stroke="#6f8ca4" stroke-width="3"/>
+        <text x="492" y="117" font-family="Arial" font-size="13" fill="#7a8794">Автор / название / тема</text>
+        <rect x="475" y="146" width="310" height="32" fill="#f7f9fb" stroke="#d9e0e7"/>
+        <text x="490" y="167" font-family="Arial" font-size="12" font-weight="700">Библиографическая запись</text>
+        <rect x="475" y="187" width="310" height="32" fill="#f7f9fb" stroke="#d9e0e7"/>
+        <text x="490" y="208" font-family="Arial" font-size="12" font-weight="700">Полный текст / доступ</text>
+      </svg>
+    </div>
+    <div class="src">Электронно-форматные библиографические ресурсы включают базы данных и электронные каталоги; их задача — учет, поиск и навигация по документам.</div>
+    <div class="num">3</div>
+  </section>
+
+  <!-- СЛАЙД 4 -->
+  <section class="slide">
+    <div class="ey">Слайд 4 · Научные базы</div>
+    <h2>Поиск в распределённом массиве</h2>
+    <div class="explain">Научный поиск объединяет публикации, материалы конференций, диссертации и библиографические записи.</div>
+    <div class="source-map">
+      <div class="s s1"><i data-lucide="file-text"></i><b>Статьи журналов</b></div>
+      <div class="s s2"><i data-lucide="presentation"></i><b>Материалы конференций</b></div>
+      <div class="s s3"><i data-lucide="graduation-cap"></i><b>Диссертации и ВКР</b></div>
+      <div class="s s4"><i data-lucide="list"></i><b>Библиографические записи</b></div>
+      <div class="process">
+        <div class="step">ПОИСК</div>
+        <div class="step">ОТБОР</div>
+        <div class="step">ДОСТУП</div>
+      </div>
+    </div>
+    <div class="src">Электронные библиографические ресурсы обеспечивают учёт, поиск и ориентирование в цифровом массиве документов.</div>
+    <div class="num">4</div>
+  </section>
+
+  <!-- СЛАЙД 5 -->
+  <section class="slide">
+    <div class="ey">Слайд 5 · Поиск</div>
+    <h2>От запроса к источнику</h2>
+    <div class="explain">Эффективный поиск проходит несколько последовательных этапов: от формулирования информационной потребности до выбора конкретного документа.</div>
+    <div class="steps">
+      <div class="step-card"><div class="step-num">01</div><b>Запрос</b><span>Определить тему, ключевые понятия и цель поиска.</span></div>
+      <div class="step-card"><div class="step-num">02</div><b>Поиск</b><span>Использовать каталоги, базы данных и поисковые средства.</span></div>
+      <div class="step-card"><div class="step-num">03</div><b>Отбор</b><span>Сопоставить результаты с задачей и оценить качество источников.</span></div>
+      <div class="step-card"><div class="step-num">04</div><b>Источник</b><span>Перейти к документу, полному тексту или библиографической записи.</span></div>
+    </div>
+    <div class="flow-line">
+      <span>ПОТРЕБНОСТЬ</span><span>→</span><span>ПОИСК</span><span>→</span><span>ОТБОР</span><span>→</span><span>ИСТОЧНИК</span>
+    </div>
+    <div class="num">5</div>
+  </section>
+
+  <!-- СЛАЙД 6 -->
+  <section class="slide">
+    <div class="ey">Слайд 6 · Оценка</div>
+    <h2>Как оценивать сетевой источник</h2>
+    <div class="explain">Сетевой доступ не гарантирует научную ценность: источник нужно проверить по ключевым критериям.</div>
+    <div class="cols">
+      <div style="height:285px">
+        <svg viewBox="0 0 500 285">
+          <circle cx="250" cy="142" r="58" fill="#edf4f9" stroke="#254c6e" stroke-width="4"/>
+          <g stroke="#9aabba" stroke-width="3">
+            <line x1="250" y1="84" x2="250" y2="42"/>
+            <line x1="308" y1="142" x2="410" y2="142"/>
+            <line x1="250" y1="200" x2="250" y2="242"/>
+            <line x1="192" y1="142" x2="90" y2="142"/>
+          </g>
+          <g fill="#f7f9fb" stroke="#b9c7d5" stroke-width="2">
+            <rect x="175" y="14" width="150" height="42" rx="9"/>
+            <rect x="365" y="121" width="120" height="42" rx="9"/>
+            <rect x="175" y="229" width="150" height="42" rx="9"/>
+            <rect x="15" y="121" width="120" height="42" rx="9"/>
+          </g>
+          <g font-family="Arial" text-anchor="middle" fill="#182534" font-size="12" font-weight="700">
+            <text x="250" y="40">АВТОР / ОРГАНИЗАЦИЯ</text>
+            <text x="425" y="147">АКТУАЛЬНОСТЬ</text>
+            <text x="250" y="255">ДОСТОВЕРНОСТЬ</text>
+            <text x="75" y="147">НАУЧНЫЙ СТАТУС</text>
+          </g>
+          <g font-family="Arial" text-anchor="middle" fill="#254c6e" font-weight="700">
+            <text x="250" y="137">КАЧЕСТВО</text>
+            <text x="250" y="157">ИСТОЧНИКА</text>
+          </g>
+        </svg>
+      </div>
+      <div class="list">
+        <div class="item dark-item"><b>Автор и организация</b><span>Идентифицируемый автор или учреждение-издатель.</span></div>
+        <div class="item dark-item"><b>Научный статус</b><span>Публикация в научном издании, учебном издании или академическом ресурсе.</span></div>
+        <div class="item dark-item"><b>Актуальность</b><span>Соответствие материала цели поиска и состоянию предметной области.</span></div>
+        <div class="item dark-item"><b>Достоверность</b><span>Проверяемость сведений, ссылок и библиографических данных.</span></div>
+      </div>
+    </div>
+    <div class="num">6</div>
+  </section>
+
+  <!-- СЛАЙД 7 -->
+  <section class="slide">
+    <div class="ey">Слайд 7 · Значение</div>
+    <h2>Сетевая информационная среда</h2>
+    <div class="explain">Для пользователя важна не отдельная база или библиотека, а связанная информационная среда. Она объединяет поиск, доступ к документам и работу разных участников образовательного и исследовательского процесса.</div>
+    <div class="visual">
+      <svg viewBox="0 0 900 290">
+        <g stroke="#9aabba" stroke-width="3">
+          <line x1="450" y1="145" x2="165" y2="65"/>
+          <line x1="450" y1="145" x2="735" y2="65"/>
+          <line x1="450" y1="145" x2="165" y2="225"/>
+          <line x1="450" y1="145" x2="735" y2="225"/>
+        </g>
+        <circle cx="450" cy="145" r="105" fill="#edf4f9" stroke="#254c6e" stroke-width="4"/>
+        <g fill="#fff" stroke="#cbd6e0" stroke-width="2">
+          <rect x="60" y="35" width="210" height="60" rx="9"/>
+          <rect x="630" y="35" width="210" height="60" rx="9"/>
+          <rect x="60" y="195" width="210" height="60" rx="9"/>
+          <rect x="630" y="195" width="210" height="60" rx="9"/>
+        </g>
+        <g font-family="Arial" text-anchor="middle">
+          <g font-size="15" font-weight="700">
+            <text x="165" y="61">Студент</text>
+            <text x="735" y="61">Преподаватель</text>
+            <text x="165" y="221">Исследователь</text>
+            <text x="735" y="221">Библиотека</text>
+          </g>
+          <g font-size="12" fill="#687687">
+            <text x="165" y="81">поиск и самостоятельная работа</text>
+            <text x="735" y="81">учебные материалы</text>
+            <text x="165" y="241">публикации и данные</text>
+            <text x="735" y="241">доступ и навигация</text>
+          </g>
+          <g fill="#254c6e" font-weight="700" font-size="14">
+            <text x="450" y="133">СЕТЕВАЯ</text>
+            <text x="450" y="154">ИНФОРМАЦИОННАЯ</text>
+            <text x="450" y="175">СРЕДА</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="src">Интеграция ресурсов формирует единое информационное пространство, в котором поиск, хранение и предоставление электронных документов связаны между собой.</div>
+    <div class="num">7</div>
+  </section>
+
+  <!-- СЛАЙД 8 -->
+  <section class="slide">
+    <div class="ey">Слайд 8 · Выводы</div>
+    <h2>Что определяет эффективность сетевых ресурсов</h2>
+    <div class="explain">Эффективность сетевого ресурса определяется не только объёмом представленной информации. Важны структура ресурса, качество средств поиска и возможность оценить надёжность найденных сведений.</div>
+    <div class="concl">
+      <div class="concl-card"><div class="concl-num">01</div><b>Структура</b><p>Ресурс должен иметь понятную организацию, метаданные и средства навигации.</p></div>
+      <div class="concl-card"><div class="concl-num">02</div><b>Поиск</b><p>Каталоги и базы данных сокращают путь от информационного запроса к документу.</p></div>
+      <div class="concl-card"><div class="concl-num">03</div><b>Качество</b><p>Научная ценность определяется авторством, актуальностью и проверяемостью сведений.</p></div>
+    </div>
+    <div class="concl-final">Сетевой информационный ресурс — это не просто доступ к данным, а организованная система поиска, хранения и использования информации.</div>
+    <div class="num">8</div>
+  </section>
+
+  <!-- СЛАЙД 9 -->
+  <section class="slide">
+    <div class="ey">Источники</div>
+    <h2>Научная литература</h2>
+    <div class="four">
+      <div class="mini"><b>Левин Г. Л.</b><span>Сетевые информационные ресурсы как объект библиографирования // Библиотековедение. 2017. Т. 66, № 4. С. 396–402.</span></div>
+      <div class="mini"><b>Левин Г.</b><span>Электронные библиографические ресурсы и их библиографирование // Библиография. 2017. № 4. С. 46–54.</span></div>
+      <div class="mini"><b>Панов А. В.</b><span>Сетевые информационные ресурсы: учебное пособие. М.: МГТУ МИРЭА, 2011. 119 с.</span></div>
+      <div class="mini"><b>Цветков В. Я., Семушкина С. Г.</b><span>Электронные ресурсы и электронные услуги // Современные проблемы науки и образования. 2009. № 6-1. С. 39–40.</span></div>
+    </div>
+    <div class="src-note">Использованы научные статьи и учебное издание, посвящённые сетевым, электронным и библиографическим информационным ресурсам.</div>
+    <div class="num">9</div>
+  </section>
+
+  <!-- СЛАЙД 10 -->
+  <section class="slide thanks">
+    <div class="ey">Завершение</div>
+    <div class="thanks-wrap">
+      <div class="thanks-copy">
+        <div class="tiny">КемГИК · Сетевые информационные ресурсы</div>
+        <h1>Спасибо<br>за внимание!</h1>
+        <p>Пусть поиск информации всегда приводит<br>к хорошим источникам.</p>
+        <div class="thanks-line"><span></span><i data-lucide="cat"></i><span></span></div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-ear left"></div>
+        <div class="cat-ear right"></div>
+        <div class="cat-face">
+          <div class="cat-eye e1"></div>
+          <div class="cat-eye e2"></div>
+          <div class="cat-nose"></div>
+          <div class="cat-mouth"></div>
+          <div class="whisk w1"></div>
+          <div class="whisk w2"></div>
+          <div class="whisk w3"></div>
+          <div class="whisk w4"></div>
+        </div>
+        <div class="cat-caption">информация найдена ✓</div>
+      </div>
+    </div>
+    <div class="num">10</div>
+  </section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
