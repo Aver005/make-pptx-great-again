@@ -1,0 +1,15 @@
+{
+  "plugins": ["typescript", "unicorn", "oxc", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "legacy/**",
+    "out/**",
+    "examples/**",
+    "src/vendor/**",
+    "src/engine/icons.js"
+  ]
+}

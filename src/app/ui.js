@@ -1,360 +1,421 @@
 (() => {
-  const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML
-  const $ = id => document.getElementById(id)
-  const BUILD = window.MPGA_BUILD || { version: 'dev', date: '' }
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const PRISTINE = "<!doctype html>\n" + document.documentElement.outerHTML;
+  const $ = (id) => document.getElementById(id);
+  const BUILD = window.MPGA_BUILD || { version: "dev", date: "" };
+  const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let current = null
+  let current = null;
 
   /* ---------- иконки ---------- */
 
   function iconMarkup(name, cls) {
-    const body = (window.MPGA_ICONS || {})[name]
-    if (!body) return ''
-    return `<svg class="${cls || ''}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
+    const body = (window.MPGA_ICONS || {})[name];
+    if (!body) return "";
+    return (
+      `<svg class="${cls || ""}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
       ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"' +
       ` stroke-linejoin="round" aria-hidden="true">${body}</svg>`
+    );
   }
 
   function paintUiIcons(root = document) {
-    for (const node of [...root.querySelectorAll('[data-ui-icon]')]) {
-      const markup = iconMarkup(node.getAttribute('data-ui-icon'), node.className)
-      if (!markup) { node.remove(); continue }
-      const holder = document.createElement('div')
-      holder.innerHTML = markup
-      node.replaceWith(holder.firstElementChild)
+    for (const node of root.querySelectorAll("[data-ui-icon]")) {
+      const markup = iconMarkup(node.getAttribute("data-ui-icon"), node.className);
+      if (!markup) {
+        node.remove();
+        continue;
+      }
+      const holder = document.createElement("div");
+      holder.innerHTML = markup;
+      node.replaceWith(holder.firstElementChild);
     }
   }
 
   /* ---------- мелочи ---------- */
 
   function esc(text) {
-    return String(text).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+    return String(text).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   }
 
   function plural(n, one, few, many) {
-    const mod10 = n % 10
-    const mod100 = n % 100
-    if (mod10 === 1 && mod100 !== 11) return one
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few
-    return many
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
   }
 
   function setStatus(text, busy, alarming) {
-    const box = $('status')
-    box.classList.toggle('on', !!text)
-    box.classList.toggle('bad', !!alarming)
-    box.setAttribute('aria-live', alarming ? 'assertive' : 'polite')
+    const box = $("status");
+    box.classList.toggle("on", !!text);
+    box.classList.toggle("bad", !!alarming);
+    box.setAttribute("aria-live", alarming ? "assertive" : "polite");
     box.innerHTML = text
-      ? (busy ? '<div class="track"></div>' : '') + (alarming ? iconMarkup('circle-alert') : '') +
+      ? (busy ? '<div class="track"></div>' : "") +
+        (alarming ? iconMarkup("circle-alert") : "") +
         (alarming ? `<div>${text}</div>` : text)
-      : ''
+      : "";
   }
 
   function fileName(title) {
-    const clean = (title || 'Презентация').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60)
-    return `${clean || 'Презентация'}.pptx`
+    const clean = (title || "Презентация")
+      .replace(/[\\/:*?"<>|]+/g, " ")
+      .trim()
+      .slice(0, 60);
+    return `${clean || "Презентация"}.pptx`;
   }
 
   function saveBlob(blob, name) {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = name
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
   async function copy(text, button, label) {
-    const old = button.innerHTML
-    button.style.minWidth = `${button.getBoundingClientRect().width}px`
+    const old = button.innerHTML;
+    button.style.minWidth = `${button.getBoundingClientRect().width}px`;
     try {
-      await navigator.clipboard.writeText(text)
-    } catch (err) {
-      const area = document.createElement('textarea')
-      area.value = text
-      document.body.appendChild(area)
-      area.select()
-      document.execCommand('copy')
-      area.remove()
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
     }
-    button.classList.add('copied')
-    button.innerHTML = `${iconMarkup('check')}<span>${esc(label || 'Скопировано')}</span>`
+    button.classList.add("copied");
+    button.innerHTML = `${iconMarkup("check")}<span>${esc(label || "Скопировано")}</span>`;
     setTimeout(() => {
-      button.innerHTML = old
-      button.classList.remove('copied')
-      button.style.minWidth = ''
-    }, 2200)
+      button.innerHTML = old;
+      button.classList.remove("copied");
+      button.style.minWidth = "";
+    }, 2200);
   }
 
   /* ---------- плавное раскрытие ---------- */
 
   function bindFolds() {
-    for (const fold of document.querySelectorAll('details.fold')) {
-      const summary = fold.querySelector('summary')
-      const body = fold.querySelector('.fold-body')
-      summary.addEventListener('click', event => {
-        if (REDUCED || !fold.open) return
-        event.preventDefault()
-        fold.classList.add('closing')
-        let closed = false
+    for (const fold of document.querySelectorAll("details.fold")) {
+      const summary = fold.querySelector("summary");
+      const body = fold.querySelector(".fold-body");
+      summary.addEventListener("click", (event) => {
+        if (REDUCED || !fold.open) return;
+        event.preventDefault();
+        fold.classList.add("closing");
+        let closed = false;
         const done = () => {
-          if (closed) return
-          closed = true
-          fold.open = false
-          fold.classList.remove('closing')
-          body.removeEventListener('transitionend', done)
-        }
-        body.addEventListener('transitionend', done)
-        setTimeout(done, 420)
-      })
+          if (closed) return;
+          closed = true;
+          fold.open = false;
+          fold.classList.remove("closing");
+          body.removeEventListener("transitionend", done);
+        };
+        body.addEventListener("transitionend", done);
+        setTimeout(done, 420);
+      });
     }
   }
 
   /* ---------- результат ---------- */
 
   function layoutPreview() {
-    const host = $('slides')
-    const ir = current && current.ir
-    if (!ir) return
-    const first = host.querySelector('.frame')
-    if (!first) return
-    const width = first.clientWidth
-    if (!width) return
-    const scale = width / ir.slideW
-    for (const frame of host.querySelectorAll('.frame')) {
-      frame.style.height = `${Math.round(ir.slideH * scale)}px`
-      frame.firstElementChild.style.transform = `scale(${scale})`
+    const host = $("slides");
+    const ir = current && current.ir;
+    if (!ir) return;
+    const first = host.querySelector(".frame");
+    if (!first) return;
+    const width = first.clientWidth;
+    if (!width) return;
+    const scale = width / ir.slideW;
+    for (const frame of host.querySelectorAll(".frame")) {
+      frame.style.height = `${Math.round(ir.slideH * scale)}px`;
+      frame.firstElementChild.style.transform = `scale(${scale})`;
     }
   }
 
   function renderPreview(ir) {
-    const host = $('slides')
-    host.innerHTML = ''
+    const host = $("slides");
+    host.innerHTML = "";
     ir.slides.forEach((slide, index) => {
-      const card = document.createElement('div')
-      card.className = 'thumb'
-      card.style.setProperty('--i', Math.min(index, 12))
-      const frame = document.createElement('div')
-      frame.className = 'frame'
-      const stage = document.createElement('div')
-      stage.className = 'stage'
+      const card = document.createElement("div");
+      card.className = "thumb";
+      card.style.setProperty("--i", Math.min(index, 12));
+      const frame = document.createElement("div");
+      frame.className = "frame";
+      const stage = document.createElement("div");
+      stage.className = "stage";
       stage.style.cssText =
         `width:${ir.slideW}px;height:${ir.slideH}px;` +
-        `background:${slide.background ? '#' + slide.background : '#fff'}`
+        `background:${slide.background ? "#" + slide.background : "#fff"}`;
 
       for (const box of slide.boxes) {
-        const node = document.createElement('div')
-        let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`
-        if (box.fill) css += `background:#${box.fill};`
-        if (box.stroke) css += `border:${box.strokeW}px solid #${box.stroke};`
-        if (box.radius === -1) css += 'border-radius:50%;'
-        else if (box.radius > 0) css += `border-radius:${box.radius}px;`
-        if (box.rot) css += `transform:rotate(${box.rot}deg);`
-        node.style.cssText = css
-        stage.appendChild(node)
+        const node = document.createElement("div");
+        let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`;
+        if (box.fill) css += `background:#${box.fill};`;
+        if (box.stroke) css += `border:${box.strokeW}px solid #${box.stroke};`;
+        if (box.radius === -1) css += "border-radius:50%;";
+        else if (box.radius > 0) css += `border-radius:${box.radius}px;`;
+        if (box.rot) css += `transform:rotate(${box.rot}deg);`;
+        node.style.cssText = css;
+        stage.appendChild(node);
       }
       for (const image of slide.images) {
-        if (!image.data) continue
-        const node = document.createElement('img')
-        node.src = image.data
-        node.alt = ''
-        node.style.cssText = `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
-          (image.rot ? `;transform:rotate(${image.rot}deg)` : '')
-        stage.appendChild(node)
+        if (!image.data) continue;
+        const node = document.createElement("img");
+        node.src = image.data;
+        node.alt = "";
+        node.style.cssText =
+          `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
+          (image.rot ? `;transform:rotate(${image.rot}deg)` : "");
+        stage.appendChild(node);
       }
       for (const text of slide.texts) {
-        const node = document.createElement('div')
-        node.className = 't'
-        const first = text.runs.find(r => !r.br) || {}
+        const node = document.createElement("div");
+        node.className = "t";
+        const first = text.runs.find((r) => !r.br) || {};
         node.style.cssText =
           `left:${text.x}px;top:${text.y}px;width:${text.w}px;height:${text.h}px;` +
-          `font:${first.bold ? '700' : '400'} ${first.size}px/${text.lh}px Arial,sans-serif;` +
-          `color:#${first.color || '000'};text-align:${text.align};` +
+          `font:${first.bold ? "700" : "400"} ${first.size}px/${text.lh}px Arial,sans-serif;` +
+          `color:#${first.color || "000"};text-align:${text.align};` +
           `display:flex;align-items:center;justify-content:${
-            text.align === 'center' ? 'center' : text.align === 'right' || text.align === 'end' ? 'flex-end' : 'flex-start'};`
-        node.innerHTML = '<span>' + text.runs.map(run => run.br ? '<br>' :
-          `<span style="font-weight:${run.bold ? 700 : 400};font-size:${run.size}px;color:#${run.color};` +
-          `${run.italic ? 'font-style:italic;' : ''}${run.spacing > 0.1 ? `letter-spacing:${run.spacing}px;` : ''}">` +
-          esc(run.text) + '</span>').join('') + '</span>'
-        stage.appendChild(node)
+            text.align === "center"
+              ? "center"
+              : text.align === "right" || text.align === "end"
+                ? "flex-end"
+                : "flex-start"
+          };`;
+        node.innerHTML =
+          "<span>" +
+          text.runs
+            .map((run) =>
+              run.br
+                ? "<br>"
+                : `<span style="font-weight:${run.bold ? 700 : 400};font-size:${run.size}px;color:#${run.color};` +
+                  `${run.italic ? "font-style:italic;" : ""}${run.spacing > 0.1 ? `letter-spacing:${run.spacing}px;` : ""}">` +
+                  esc(run.text) +
+                  "</span>",
+            )
+            .join("") +
+          "</span>";
+        stage.appendChild(node);
       }
-      frame.appendChild(stage)
-      card.appendChild(frame)
-      const num = document.createElement('div')
-      num.className = 'no'
-      num.textContent = slide.index + 1
-      card.appendChild(num)
-      host.appendChild(card)
-    })
-    requestAnimationFrame(layoutPreview)
+      frame.appendChild(stage);
+      card.appendChild(frame);
+      const num = document.createElement("div");
+      num.className = "no";
+      num.textContent = slide.index + 1;
+      card.appendChild(num);
+      host.appendChild(card);
+    });
+    requestAnimationFrame(layoutPreview);
   }
 
-  const NOTE_ICON = { error: 'circle-alert', warn: 'triangle-alert', info: 'info', good: 'circle-check' }
+  const NOTE_ICON = {
+    error: "circle-alert",
+    warn: "triangle-alert",
+    info: "info",
+    good: "circle-check",
+  };
 
   function renderNotes(warnings) {
-    const host = $('notes')
-    host.innerHTML = ''
-    const visible = warnings.filter(w => w.level !== 'info' || w.always)
-    const fix = window.MPGA.fixMessage(warnings)
-    let index = 0
+    const host = $("notes");
+    host.innerHTML = "";
+    const visible = warnings.filter((w) => w.level !== "info" || w.always);
+    const fix = window.MPGA.fixMessage(warnings);
+    let index = 0;
 
     const add = (level, html) => {
-      const item = document.createElement('li')
-      item.className = `note ${level}`
-      item.style.setProperty('--i', index++)
-      item.innerHTML = iconMarkup(NOTE_ICON[level] || 'info') + `<div>${html}</div>`
-      host.appendChild(item)
-      return item
-    }
+      const item = document.createElement("li");
+      item.className = `note ${level}`;
+      item.style.setProperty("--i", index++);
+      item.innerHTML = iconMarkup(NOTE_ICON[level] || "info") + `<div>${html}</div>`;
+      host.appendChild(item);
+      return item;
+    };
 
-    if (!visible.length) add('good', 'Ничего не потерялось: весь текст и все картинки со страницы попали в презентацию.')
+    if (!visible.length)
+      add(
+        "good",
+        "Ничего не потерялось: весь текст и все картинки со страницы попали в презентацию.",
+      );
     for (const note of visible) {
-      add(note.level === 'error' ? 'error' : 'warn',
-        esc(note.text) + (note.count > 1 ? ` <span class="count">(${note.count} раза)</span>` : ''))
+      add(
+        note.level === "error" ? "error" : "warn",
+        esc(note.text) + (note.count > 1 ? ` <span class="count">(${note.count} раза)</span>` : ""),
+      );
     }
     if (fix) {
-      const item = add('info',
-        'Что-то перенеслось не так? Скопируйте замечания и отправьте в тот же чат — нейросеть пришлёт исправленный файл.' +
-        `<div class="fix"><button class="btn" id="copy-fix">${iconMarkup('clipboard-copy')}<span>Скопировать замечания</span></button></div>`)
-      item.querySelector('#copy-fix').onclick = event =>
-        copy(fix, event.currentTarget, 'Скопировано — вставьте в чат')
+      const item = add(
+        "info",
+        "Что-то перенеслось не так? Скопируйте замечания и отправьте в тот же чат — нейросеть пришлёт исправленный файл." +
+          `<div class="fix"><button class="btn" id="copy-fix">${iconMarkup("clipboard-copy")}<span>Скопировать замечания</span></button></div>`,
+      );
+      item.querySelector("#copy-fix").onclick = (event) =>
+        copy(fix, event.currentTarget, "Скопировано — вставьте в чат");
     }
   }
 
   function renderSummary(ir) {
-    const slides = ir.slides.length
-    const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0)
-    const shapes = ir.slides.reduce((n, s) => n + s.boxes.length, 0)
+    const slides = ir.slides.length;
+    const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0);
+    const shapes = ir.slides.reduce((n, s) => n + s.boxes.length, 0);
     const chips = [
-      ['layers', slides, plural(slides, 'слайд', 'слайда', 'слайдов')],
-      ['shapes', texts + shapes, plural(texts + shapes, 'объект', 'объекта', 'объектов')],
-    ]
-    $('summary').className = 'stats'
-    $('summary').innerHTML = chips
-      .map(([icon, value, word]) => `<span class="stat">${iconMarkup(icon)}<b>${value}</b> ${word}</span>`)
-      .join('') + '<span class="stat promise">' + iconMarkup('pencil') + 'каждый правится мышкой</span>'
+      ["layers", slides, plural(slides, "слайд", "слайда", "слайдов")],
+      ["shapes", texts + shapes, plural(texts + shapes, "объект", "объекта", "объектов")],
+    ];
+    $("summary").className = "stats";
+    $("summary").innerHTML =
+      chips
+        .map(
+          ([icon, value, word]) =>
+            `<span class="stat">${iconMarkup(icon)}<b>${value}</b> ${word}</span>`,
+        )
+        .join("") +
+      '<span class="stat promise">' +
+      iconMarkup("pencil") +
+      "каждый правится мышкой</span>";
   }
 
   /* ---------- конвертация ---------- */
 
   async function run(source, label, isDemo) {
-    $('result').classList.remove('on')
-    setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ''}…`, true)
-    await new Promise(done => setTimeout(done, 30))
+    $("result").classList.remove("on");
+    setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ""}…`, true);
+    await new Promise((done) => setTimeout(done, 30));
     try {
-      const { ir, warnings } = await window.MPGA.convert(source)
-      current = { ir, warnings }
-      renderPreview(ir)
-      renderNotes(warnings)
-      renderSummary(ir)
-      $('demo-mark').hidden = !isDemo
-      $('save-as').textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`
-      setStatus('')
-      $('step-3-waiting').hidden = true
-      for (const id of ['step-1', 'step-2']) $(id).classList.add('spent')
-      $('result').classList.add('on')
-      $('result').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' })
+      const { ir, warnings } = await window.MPGA.convert(source);
+      current = { ir, warnings };
+      renderPreview(ir);
+      renderNotes(warnings);
+      renderSummary(ir);
+      $("demo-mark").hidden = !isDemo;
+      $("save-as").textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`;
+      setStatus("");
+      $("step-3-waiting").hidden = true;
+      for (const id of ["step-1", "step-2"]) $(id).classList.add("spent");
+      $("result").classList.add("on");
+      $("result").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
     } catch (err) {
-      setStatus(`<b>Не получилось.</b> ${esc(err.friendly ? err.message : 'Это не похоже на презентацию: ' + err.message)}` +
-        '<br>Попросите нейросеть прислать страницу целиком, одним файлом <code>.html</code>, и загрузите снова.', false, true)
+      setStatus(
+        `<b>Не получилось.</b> ${esc(err.friendly ? err.message : "Это не похоже на презентацию: " + err.message)}` +
+          "<br>Попросите нейросеть прислать страницу целиком, одним файлом <code>.html</code>, и загрузите снова.",
+        false,
+        true,
+      );
     }
   }
 
   function readFile(file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(new Error('файл не читается'))
-      reader.readAsText(file, 'utf-8')
-    })
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("файл не читается"));
+      reader.readAsText(file, "utf-8");
+    });
   }
 
   /* ---------- сборка страницы ---------- */
 
   function bind() {
-    paintUiIcons()
-    bindFolds()
+    paintUiIcons();
+    bindFolds();
 
-    $('prompt-text').value = window.MPGA_PROMPT || ''
+    $("prompt-text").value = window.MPGA_PROMPT || "";
 
-    $('copy-prompt').onclick = event =>
-      copy(window.MPGA_PROMPT || '', event.currentTarget, 'Скопировано — вставьте в чат')
-    $('pick').onclick = () => $('file').click()
-    $('file').onchange = async event => {
-      const file = event.target.files[0]
-      if (file) run(await readFile(file), file.name)
-      event.target.value = ''
-    }
-    $('demo').onclick = () => run(window.MPGA_DEMO || '', 'примера', true)
-    $('convert-paste').onclick = () => {
-      const value = $('paste').value.trim()
-      if (value.length < 40) { setStatus('Вставьте код презентации целиком — он начинается с <code>&lt;!doctype html&gt;</code>.'); return }
-      run(value, 'вставленного кода')
-    }
+    $("copy-prompt").onclick = (event) =>
+      copy(window.MPGA_PROMPT || "", event.currentTarget, "Скопировано — вставьте в чат");
+    $("pick").onclick = () => $("file").click();
+    $("file").onchange = async (event) => {
+      const file = event.target.files[0];
+      if (file) run(await readFile(file), file.name);
+      event.target.value = "";
+    };
+    $("demo").onclick = () => run(window.MPGA_DEMO || "", "примера", true);
+    $("convert-paste").onclick = () => {
+      const value = $("paste").value.trim();
+      if (value.length < 40) {
+        setStatus(
+          "Вставьте код презентации целиком — он начинается с <code>&lt;!doctype html&gt;</code>.",
+        );
+        return;
+      }
+      run(value, "вставленного кода");
+    };
 
-    const drop = $('drop')
-    let dragDepth = 0
-    drop.addEventListener('dragenter', event => {
-      event.preventDefault()
-      dragDepth++
-      drop.classList.add('over')
-    })
-    drop.addEventListener('dragover', event => { event.preventDefault(); drop.classList.add('over') })
-    drop.addEventListener('dragleave', event => {
-      event.preventDefault()
-      dragDepth = Math.max(0, dragDepth - 1)
-      if (!dragDepth) drop.classList.remove('over')
-    })
-    drop.addEventListener('drop', async event => {
-      event.preventDefault()
-      dragDepth = 0
-      drop.classList.remove('over')
-      const file = event.dataTransfer.files[0]
-      if (file) run(await readFile(file), file.name)
-    })
+    const drop = $("drop");
+    let dragDepth = 0;
+    drop.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+      dragDepth++;
+      drop.classList.add("over");
+    });
+    drop.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      drop.classList.add("over");
+    });
+    drop.addEventListener("dragleave", (event) => {
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (!dragDepth) drop.classList.remove("over");
+    });
+    drop.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      dragDepth = 0;
+      drop.classList.remove("over");
+      const file = event.dataTransfer.files[0];
+      if (file) run(await readFile(file), file.name);
+    });
 
-    $('download').onclick = async event => {
-      if (!current) return
-      const button = event.currentTarget
-      const old = button.innerHTML
-      button.disabled = true
-      button.innerHTML = `${iconMarkup('loader', 'spin')}<span>Собираю файл…</span>`
+    $("download").onclick = async (event) => {
+      if (!current) return;
+      const button = event.currentTarget;
+      const old = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = `${iconMarkup("loader", "spin")}<span>Собираю файл…</span>`;
       try {
         const blob = await window.MPGA.pptxBlob(current.ir, {
-          title: current.ir.title, app: `MPGA ${BUILD.version}`,
-        })
-        saveBlob(blob, fileName(current.ir.title))
-        button.innerHTML = `${iconMarkup('check')}<span>Скачать ещё раз</span>`
-      } catch (err) {
-        button.innerHTML = old
-        setStatus('<b>Не получилось собрать файл.</b> Попробуйте ещё раз или перезагрузите страницу.')
+          title: current.ir.title,
+          app: `MPGA ${BUILD.version}`,
+        });
+        saveBlob(blob, fileName(current.ir.title));
+        button.innerHTML = `${iconMarkup("check")}<span>Скачать ещё раз</span>`;
+      } catch {
+        button.innerHTML = old;
+        setStatus(
+          "<b>Не получилось собрать файл.</b> Попробуйте ещё раз или перезагрузите страницу.",
+        );
       }
-      button.disabled = false
-    }
+      button.disabled = false;
+    };
 
-    $('offline-line').innerHTML =
-      `<button class="btn ghost" id="save-offline">${iconMarkup('hard-drive-download')}<span>Сохранить страницу себе</span></button>` +
-      '<span>потом откроется даже без интернета</span>'
-    $('save-offline').onclick = () => {
-      saveBlob(new Blob([PRISTINE], { type: 'text/html' }), `MPGA-${BUILD.version}.html`)
-    }
-    $('legal').innerHTML = window.MPGA_LEGAL || ''
+    $("offline-line").innerHTML =
+      `<button class="btn ghost" id="save-offline">${iconMarkup("hard-drive-download")}<span>Сохранить страницу себе</span></button>` +
+      "<span>потом откроется даже без интернета</span>";
+    $("save-offline").onclick = () => {
+      saveBlob(new Blob([PRISTINE], { type: "text/html" }), `MPGA-${BUILD.version}.html`);
+    };
+    $("legal").innerHTML = window.MPGA_LEGAL || "";
 
-    let pending = 0
+    let pending = 0;
     new ResizeObserver(() => {
-      cancelAnimationFrame(pending)
-      pending = requestAnimationFrame(layoutPreview)
-    }).observe($('slides'))
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(layoutPreview);
+    }).observe($("slides"));
 
-    window.addEventListener('error', event => {
-      setStatus(`<b>Что-то пошло не так.</b> ${esc(event.message || '')}<br>` +
-        'Попробуйте другой файл или перезагрузите страницу.')
-    })
+    window.addEventListener("error", (event) => {
+      setStatus(
+        `<b>Что-то пошло не так.</b> ${esc(event.message || "")}<br>` +
+          "Попробуйте другой файл или перезагрузите страницу.",
+      );
+    });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind)
-  else bind()
-})()
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
+  else bind();
+})();

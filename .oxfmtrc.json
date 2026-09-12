@@ -1,0 +1,12 @@
+{
+  "ignorePatterns": [
+    "dist",
+    "out",
+    "legacy",
+    "examples",
+    "src/vendor",
+    "src/engine/icons.js",
+    "**/*.md",
+    "**/*.html"
+  ]
+}

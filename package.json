@@ -4,14 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node tools/build.mjs",
-    "check": "node tools/check.mjs",
-    "icons": "node tools/gen-icons.mjs",
-    "test": "node tools/test.mjs",
-    "e2e": "node tools/e2e.mjs",
-    "convert": "node tools/cli.mjs"
+    "start": "bun server/main.ts",
+    "dev": "bun --hot server/main.ts",
+    "build": "bun tools/build.mjs",
+    "icons": "bun tools/gen-icons.mjs",
+    "test": "bun tools/test.mjs",
+    "e2e": "bun tools/e2e.mjs",
+    "convert": "bun tools/cli.mjs",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
   },
   "devDependencies": {
-    "puppeteer-core": "^24.0.0"
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.79.0",
+    "puppeteer-core": "^24.0.0",
+    "typescript": "^7.0.2"
   }
 }
