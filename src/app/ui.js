@@ -9,7 +9,7 @@
   /* ---------- иконки ---------- */
 
   function iconMarkup(name, cls) {
-    const body = (window.MPGA_ICONS || {})[name];
+    const body = (window.MPGA_UI_ICONS || {})[name] ?? (window.MPGA_ICONS || {})[name];
     if (!body) return "";
     return (
       `<svg class="${cls || ""}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
@@ -104,20 +104,39 @@
     for (const fold of document.querySelectorAll("details.fold")) {
       const summary = fold.querySelector("summary");
       const body = fold.querySelector(".fold-body");
+      if (fold.open) fold.classList.add("open-anim");
+
       summary.addEventListener("click", (event) => {
-        if (REDUCED || !fold.open) return;
         event.preventDefault();
-        fold.classList.add("closing");
-        let closed = false;
-        const done = () => {
-          if (closed) return;
-          closed = true;
-          fold.open = false;
-          fold.classList.remove("closing");
-          body.removeEventListener("transitionend", done);
-        };
-        body.addEventListener("transitionend", done);
-        setTimeout(done, 420);
+
+        if (REDUCED) {
+          fold.open = !fold.open;
+          fold.classList.toggle("open-anim", fold.open);
+          return;
+        }
+
+        if (fold.open) {
+          fold.classList.remove("open-anim");
+          let closed = false;
+          const finish = () => {
+            if (closed) return;
+            closed = true;
+            fold.open = false;
+            body.removeEventListener("transitionend", finish);
+          };
+          body.addEventListener("transitionend", finish);
+          setTimeout(finish, 420);
+          return;
+        }
+
+        // Содержимое сначала появляется схлопнутым и начинает расти со
+        // следующего кадра: браузер не умеет переходить от «содержимого нет»
+        // к «есть», и без этой пары кадров первое раскрытие идёт рывком, а
+        // все последующие — плавно.
+        fold.open = true;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => fold.classList.add("open-anim"));
+        });
       });
     }
   }
@@ -424,8 +443,8 @@
     };
 
     $("offline-line").innerHTML =
-      `<button class="btn ghost" id="save-offline">${iconMarkup("hard-drive-download")}<span>Сохранить страницу себе</span></button>` +
-      "<span>потом откроется даже без интернета</span>";
+      "<span>потом откроется даже без интернета</span>" +
+      `<button class="btn ghost" id="save-offline">${iconMarkup("hard-drive-download")}<span>Сохранить страницу себе</span></button>`;
     $("save-offline").onclick = () => {
       saveBlob(new Blob([PRISTINE], { type: "text/html" }), `MPGA-${BUILD.version}.html`);
     };

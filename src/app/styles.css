@@ -551,19 +551,22 @@ h2 {
 details.fold {
   margin-top: 16px;
   border-top: 1px solid var(--line);
-  padding-top: 8px;
+  padding-top: 4px;
 }
 details.fold summary {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 11px;
   cursor: pointer;
   list-style: none;
   color: var(--muted);
   font-size: 15px;
-  padding: 11px 0;
-  min-height: 44px;
+  padding: 12px 0;
+  min-height: 46px;
   transition: color var(--t);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 details.fold summary::-webkit-details-marker {
   display: none;
@@ -577,11 +580,12 @@ details.fold summary:focus-visible {
   border-radius: var(--r-xs);
 }
 summary .chev {
-  width: 16px;
-  height: 16px;
-  margin-top: 4px;
+  width: 17px;
+  height: 17px;
   flex: none;
+  margin-left: auto;
   color: var(--faint);
+  stroke-width: 2.3;
   transition: transform var(--t) var(--ease);
 }
 summary .chev svg {
@@ -591,7 +595,7 @@ summary .chev svg {
   stroke-width: 2.3;
 }
 details[open] summary .chev {
-  transform: rotate(90deg);
+  transform: rotate(180deg);
 }
 
 .fold-body {
@@ -600,10 +604,10 @@ details[open] summary .chev {
   transition: grid-template-rows var(--t-slow) var(--ease);
 }
 details[open] .fold-body {
-  grid-template-rows: 1fr;
-}
-details.fold.closing .fold-body {
   grid-template-rows: 0fr;
+}
+details.fold.open-anim > .fold-body {
+  grid-template-rows: 1fr;
 }
 .fold-inner {
   overflow: hidden;
@@ -654,6 +658,46 @@ textarea::placeholder {
   to {
     transform: rotate(360deg);
   }
+}
+
+details.fold summary > span {
+  flex: 1;
+}
+details.fold summary > svg:first-child {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  color: var(--faint);
+  stroke-width: 2.1;
+  transition: color var(--t);
+}
+details.fold summary:hover > svg:first-child,
+details[open] > summary > svg:first-child {
+  color: var(--accent);
+}
+.foot-row > span {
+  margin-right: auto;
+}
+.faq details.fold:first-of-type {
+  margin-top: 4px;
+  border-top: none;
+  padding-top: 0;
+}
+.faq-more {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  max-width: none;
+}
+.faq-more a {
+  color: var(--accent);
+}
+.faq-more a:hover {
+  color: #ff7a5f;
+}
+.fold-inner > :last-child {
+  margin-bottom: 4px;
 }
 
 /* ---------- статус ---------- */
@@ -851,6 +895,8 @@ textarea::placeholder {
 }
 .note .fix {
   margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 .note .fix .btn {
   padding: 10px 14px;
@@ -1024,6 +1070,13 @@ a:focus-visible {
     padding: 20px 18px 20px 50px;
     border-radius: var(--r-md);
     margin-bottom: 12px;
+  }
+  details.fold summary {
+    align-items: flex-start;
+  }
+  details.fold summary > svg:first-child,
+  summary svg.chev {
+    margin-top: 2px;
   }
   .step-head {
     align-items: flex-start;

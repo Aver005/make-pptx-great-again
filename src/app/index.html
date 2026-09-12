@@ -7,7 +7,7 @@
 <!--META-->
 <!--HEAD-->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'none'; form-action 'none'; frame-src 'self' data: blob:; base-uri 'none'">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%230c0a0a"/><rect x="6" y="8" width="20" height="16" rx="2.5" fill="%23f2f1ef"/><rect x="9" y="11" width="9" height="2.4" rx="1.2" fill="%23ff4d2e"/><rect x="9" y="16" width="14" height="1.8" rx=".9" fill="%23c9c7c3"/><rect x="9" y="19.5" width="11" height="1.8" rx=".9" fill="%23d9d7d3"/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230c0a0a'/><rect x='6' y='8' width='20' height='16' rx='2.5' fill='%23f2f1ef'/><rect x='9' y='11' width='9' height='2.4' rx='1.2' fill='%23ff4d2e'/><rect x='9' y='16' width='14' height='1.8' rx='.9' fill='%23c9c7c3'/><rect x='9' y='19.5' width='11' height='1.8' rx='.9' fill='%23d9d7d3'/></svg>">
 <title>MPGA — презентация из нейросети в PowerPoint</title>
 <!--STYLES-->
 </head>
@@ -56,7 +56,7 @@
     <button class="btn" id="copy-prompt"><i data-ui-icon="clipboard-copy"></i><span>Скопировать задание</span></button>
   </div>
   <details id="prompt-box" class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Показать текст задания</summary>
+    <summary><i data-ui-icon="file-text"></i><span>Показать текст задания</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <textarea id="prompt-text" readonly rows="12" spellcheck="false" aria-label="Текст задания для нейросети"></textarea>
     </div></div>
@@ -85,7 +85,7 @@
     <input type="file" id="file" accept=".html,.htm,.txt,text/html" hidden>
   </div>
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Файла нет — код прямо в чате</summary>
+    <summary><i data-ui-icon="clipboard-paste"></i><span>Файла нет — код прямо в чате</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Нажмите в чате «копировать» на блоке кода и вставьте его сюда.</p>
       <textarea id="paste" spellcheck="false" aria-label="Код презентации из чата" placeholder="Вставьте сюда код, который начинается с <!doctype html>"></textarea>
@@ -116,7 +116,7 @@
     <p class="save-as" id="save-as"></p>
     <ul class="notes" id="notes"></ul>
     <details class="fold">
-      <summary><i data-ui-icon="chevron-right" class="chev"></i>Файл скачался, но не открывается или открылся «только для чтения»</summary>
+      <summary><i data-ui-icon="circle-help"></i><span>Файл скачался, но не открывается или открылся «только для чтения»</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
       <div class="fold-body"><div class="fold-inner">
         <div class="done">
           <ol>
@@ -142,49 +142,49 @@
   </div>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Это бесплатно?</summary>
+    <summary><i data-ui-icon="wallet"></i><span>Это бесплатно?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Да, полностью. Без регистрации, без подписки и без ограничения на число презентаций. Исходный код открыт под лицензией MIT.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Мой файл куда-то загружается?</summary>
+    <summary><i data-ui-icon="shield-check"></i><span>Мой файл куда-то загружается?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Нет. Презентация обрабатывается прямо в вашем браузере: страница не делает ни одного обращения в интернет после загрузки. Это можно проверить — отключите сеть и соберите файл.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Почему презентация от нейросети не открывается в PowerPoint?</summary>
+    <summary><i data-ui-icon="file-x"></i><span>Почему презентация от нейросети не открывается в PowerPoint?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Потому что нейросети делают презентацию веб-страницей — файлом <code>.html</code>. PowerPoint такой файл либо не открывает, либо показывает как текст. MPGA пересобирает эту страницу в формат <code>.pptx</code>, который PowerPoint считает своим.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Текст в готовом файле можно будет править?</summary>
+    <summary><i data-ui-icon="pencil"></i><span>Текст в готовом файле можно будет править?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Да, в этом вся задача. Каждый заголовок, абзац и подпись становятся обычным текстовым блоком PowerPoint: щёлкаете и печатаете. Фигуры двигаются и перекрашиваются. Картинкой вставляется только то, что иначе не перенести — сложная графика схем и иконки.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Какие нейросети подходят?</summary>
+    <summary><i data-ui-icon="bot"></i><span>Какие нейросети подходят?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Любые, которые умеют писать код: ChatGPT, DeepSeek, GigaChat, Claude, Qwen, Gemini. Задание на шаге 1 написано так, чтобы результат подошёл MPGA, но строгого соблюдения не требуется: чего движок не поймёт, он перенесёт картинкой и честно об этом скажет.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Работает ли на телефоне?</summary>
+    <summary><i data-ui-icon="smartphone"></i><span>Работает ли на телефоне?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">Да. Файл сохранится в «Загрузки», открыть его можно мобильным PowerPoint или переслать себе на компьютер. Но забирать и править готовую презентацию удобнее с компьютера.</p>
     </div></div>
   </details>
 
   <details class="fold">
-    <summary><i data-ui-icon="chevron-right" class="chev"></i>Текст вылез за рамку карточки — что делать?</summary>
+    <summary><i data-ui-icon="move-horizontal"></i><span>Текст вылез за рамку карточки — что делать?</span><i class="chev" data-ui-icon="chevron-down"></i></summary>
     <div class="fold-body"><div class="fold-inner">
       <p class="step-note">В PowerPoint шрифт чуть шире, чем в браузере, поэтому длинная подпись иногда не помещается. Потяните рамку за угол или сократите текст. Чтобы этого не случалось, просите у нейросети короткие подписи — так написано в задании на шаге 1.</p>
     </div></div>

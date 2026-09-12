@@ -53,7 +53,34 @@ window.MPGA_LEGAL = ${JSON.stringify(legal)};
 `;
 
 const engineCode = ENGINE.map(read).join("\n;\n");
-const appCode = `${data}\n${read("src/app/ui.js")}`;
+
+// Интерфейсу иконки нужны сразу, а весь набор lucide уезжает в лениво
+// загружаемый движок. Поэтому в страницу вшивается только то, что рисует
+// сам интерфейс: имена собираются из разметки и из ui.js, промах здесь
+// означал бы пустой квадрат на видном месте.
+const uiSource = read("src/app/ui.js");
+const uiNames = new Set();
+for (const [, name] of read("src/app/index.html").matchAll(/data-ui-icon="([a-z0-9-]+)"/g))
+  uiNames.add(name);
+for (const [, name] of uiSource.matchAll(/iconMarkup\(\s*["']([a-z0-9-]+)["']/g)) uiNames.add(name);
+for (const [, block] of uiSource.matchAll(/NOTE_ICON = \{([^}]+)\}/g)) {
+  for (const [, name] of block.matchAll(/["']([a-z0-9-]+)["']/g)) uiNames.add(name);
+}
+
+const ICONS = new Function(
+  `${read("src/engine/icons.js").replace(/^window\./gm, "globalThis.")}; return globalThis.MPGA_ICONS;`,
+)();
+const uiIcons = {};
+for (const name of [...uiNames].sort()) {
+  if (!ICONS[name]) {
+    console.error(
+      `сборка остановлена: интерфейс просит иконку «${name}», которой нет в наборе lucide`,
+    );
+    process.exit(1);
+  }
+  uiIcons[name] = ICONS[name];
+}
+const appCode = `window.MPGA_UI_ICONS = ${JSON.stringify(uiIcons)};\n${data}\n${uiSource}`;
 const styles = read("src/app/styles.css");
 const template = read("src/app/index.html");
 const meta = read("src/app/meta.html")
