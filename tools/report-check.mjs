@@ -22,7 +22,9 @@ const fail = (text) => {
 const pass = (text) => console.log(`    ✓ ${text}`);
 
 const server = Bun.spawn(["bun", "server/main.ts"], {
-  env: { ...process.env, PORT: String(PORT), REPORTS_DIR: dir },
+  // Bun сам подхватывает .env проекта, поэтому продакшновые значения
+  // перебиваются явно: иначе проверка Origin отклонит запросы с localhost.
+  env: { ...process.env, PORT: String(PORT), REPORTS_DIR: dir, REPORTS_ORIGIN: "" },
   stdout: "pipe",
   stderr: "pipe",
 });
