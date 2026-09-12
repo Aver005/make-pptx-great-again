@@ -14,6 +14,7 @@ HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:7200/health}"
 EXPECTED_REMOTE="${EXPECTED_REMOTE:-https://github.com/Aver005/make-pptx-great-again.git}"
 REQUIRE_SIGNED="${REQUIRE_SIGNED:-0}"
 HEALTH_TRIES="${HEALTH_TRIES:-20}"
+STATE_FILE="${STATE_FILE:-/var/lib/mpga-update/deployed}"
 
 cd "$REPO_DIR"
 
@@ -32,25 +33,35 @@ git fetch --prune --quiet origin "$BRANCH"
 
 current=$(git rev-parse HEAD)
 target=$(git rev-parse "origin/$BRANCH")
-if [ "$current" = "$target" ]; then
+deployed=""
+[ -f "$STATE_FILE" ] && deployed=$(cat "$STATE_FILE")
+
+# Сверяется не только ветка с удалённой, но и то, что реально собрано. Иначе
+# коммит, сделанный на самом сервере, не доезжает до контейнера никогда: ветки
+# уже совпали, а образ остался прежним.
+if [ "$current" = "$target" ] && [ "$deployed" = "$target" ]; then
   exit 0
 fi
 
-if ! git merge-base --is-ancestor "$current" "$target"; then
-  echo "остановлено: $BRANCH переписан (текущий коммит не предок нового) — нужна ручная проверка"
-  exit 1
+if [ "$current" != "$target" ]; then
+  if ! git merge-base --is-ancestor "$current" "$target"; then
+    echo "остановлено: $BRANCH переписан (текущий коммит не предок нового) — нужна ручная проверка"
+    exit 1
+  fi
+
+  if [ "$REQUIRE_SIGNED" = "1" ] && ! git verify-commit "$target" >/dev/null 2>&1; then
+    echo "остановлено: коммит $target без доверенной подписи"
+    exit 1
+  fi
+
+  echo "обновление $(git rev-parse --short HEAD) → $(git rev-parse --short "$target")"
+  git log --format='  %h %s' "$current..$target" | head -20
+
+  git switch --quiet "$BRANCH"
+  git merge --ff-only --quiet "origin/$BRANCH"
+else
+  echo "ветка уже на $(git rev-parse --short HEAD), но собран${deployed:+ } ${deployed:-ничего не собрано} — пересобираю"
 fi
-
-if [ "$REQUIRE_SIGNED" = "1" ] && ! git verify-commit "$target" >/dev/null 2>&1; then
-  echo "остановлено: коммит $target без доверенной подписи"
-  exit 1
-fi
-
-echo "обновление $(git rev-parse --short HEAD) → $(git rev-parse --short "$target")"
-git log --format='  %h %s' "$current..$target" | head -20
-
-git switch --quiet "$BRANCH"
-git merge --ff-only --quiet "origin/$BRANCH"
 
 rebuild() {
   docker compose --project-directory "$STACK_DIR" up -d --build "$SERVICE"
@@ -74,6 +85,8 @@ if ! rebuild; then
 fi
 
 if healthy; then
+  mkdir -p "$(dirname "$STATE_FILE")"
+  git rev-parse HEAD > "$STATE_FILE"
   echo "готово: $(git rev-parse --short HEAD) работает, проверка $HEALTH_URL отвечает"
   exit 0
 fi
@@ -81,6 +94,8 @@ fi
 echo "новая версия не отвечает на $HEALTH_URL, откатываюсь на $(git rev-parse --short "$current")"
 git reset --hard --quiet "$current"
 if rebuild && healthy; then
+  mkdir -p "$(dirname "$STATE_FILE")"
+  git rev-parse HEAD > "$STATE_FILE"
   echo "откат выполнен, сервис снова отвечает"
 else
   echo "ОТКАТ НЕ ПОМОГ — сервис лежит, нужна ручная проверка: docker compose logs $SERVICE"
