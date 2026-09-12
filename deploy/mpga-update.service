@@ -6,7 +6,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/root/mpga/deploy/update.sh
+ExecStart=/usr/local/sbin/mpga-update
 EnvironmentFile=-/etc/default/mpga-update
 TimeoutStartSec=900
 Nice=10

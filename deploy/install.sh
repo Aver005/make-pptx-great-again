@@ -5,6 +5,11 @@ set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 
+# Скрипт ставится КОПИЕЙ за пределы репозитория намеренно. Он обновляет тот же
+# каталог, в котором лежит сам: откат на коммит, где его ещё не было, оставил
+# бы systemd без исполняемого файла и сломал бы механизм обновления целиком.
+install -m 0755 "$HERE/update.sh" /usr/local/sbin/mpga-update
+
 install -m 0644 "$HERE/mpga-update.service" /etc/systemd/system/mpga-update.service
 install -m 0644 "$HERE/mpga-update.timer" /etc/systemd/system/mpga-update.timer
 
@@ -28,4 +33,6 @@ cat <<'INFO'
   что происходит     journalctl -u mpga-update.service -f
   когда следующий    systemctl list-timers mpga-update.timer
   сменить ветку      /etc/default/mpga-update, затем systemctl restart mpga-update.timer
+
+после правки deploy/update.sh повторите установку: sudo deploy/install.sh
 INFO
