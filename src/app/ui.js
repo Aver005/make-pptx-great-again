@@ -343,7 +343,7 @@
       renderNotes(warnings);
       renderSummary(ir);
       $("demo-mark").hidden = !isDemo;
-      $("save-as").textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`;
+      $("save-as").textContent = `Сохранится как «${fileName(ir.title)}» в «Загрузки»`;
       setStatus("");
       $("step-3-waiting").hidden = true;
       for (const id of ["step-1", "step-2"]) $(id).classList.add("spent");

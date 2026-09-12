@@ -26,12 +26,12 @@
 <header class="head">
   <div class="brand">
     <div class="logo">MPGA<i class="dot"></i></div>
-    <span class="pill pill-ok"><i data-ui-icon="cloud-off"></i>работает без интернета</span>
+    <span class="pill pill-ok" title="Работает без интернета"><i data-ui-icon="cloud-off"></i><span class="pill-text">работает без интернета</span></span>
   </div>
   <div class="hero">
     <div class="hero-text">
       <h1>Презентация из нейросети&nbsp;—<br> <em>в&nbsp;настоящий PowerPoint</em></h1>
-      <p class="tagline">Нейросеть присылает презентацию как веб-страницу. Здесь она превращается в&nbsp;файл PowerPoint, где текст и&nbsp;картинки правятся мышкой, как обычно.</p>
+      <p class="tagline">Нейросеть присылает презентацию веб-страницей. Здесь из&nbsp;неё получается файл PowerPoint, где текст и&nbsp;картинки правятся мышкой.</p>
     </div>
     <div class="deck-strip" aria-hidden="true">
       <span class="mini m1"></span><span class="mini m2"></span><span class="mini m3"></span>
@@ -41,7 +41,7 @@
 
 <div class="small-screen">
   <i data-ui-icon="smartphone"></i>
-  <div>С телефона тоже работает. Файл сохранится в&nbsp;«Загрузки»&nbsp;— открыть его можно в&nbsp;мобильном PowerPoint или переслать себе на&nbsp;компьютер.</div>
+  <div>Файл сохранится в&nbsp;«Загрузки»: открыть можно мобильным PowerPoint или переслать себе на&nbsp;компьютер.</div>
 </div>
 
 <main>
@@ -52,7 +52,7 @@
     <h2>Попросите нейросеть сделать презентацию</h2>
   </div>
   <div class="compact">
-    <p class="step-note">Скопируйте задание, вставьте в&nbsp;чат с&nbsp;нейросетью и&nbsp;допишите свою тему. В&nbsp;ответ придёт файл&nbsp;— его загрузите на&nbsp;шаге 2.</p>
+    <p class="step-note">Скопируйте задание, вставьте в&nbsp;чат и&nbsp;допишите свою тему. В&nbsp;ответ придёт файл.</p>
     <button class="btn" id="copy-prompt"><i data-ui-icon="clipboard-copy"></i><span>Скопировать задание</span></button>
   </div>
   <details id="prompt-box" class="fold">
@@ -100,7 +100,7 @@
     <span class="step-no">3</span>
     <h2>Заберите файл PowerPoint</h2>
   </div>
-  <p class="step-note">Здесь появятся ваши слайды и&nbsp;кнопка скачивания&nbsp;— сразу после того, как файл загрузится.</p>
+  <p class="step-note">Здесь появятся слайды и&nbsp;кнопка скачивания.</p>
   <button class="btn big" disabled><i data-ui-icon="download"></i><span>Скачать PowerPoint</span></button>
 </section>
 
@@ -129,7 +129,7 @@
     </details>
     <div class="preview">
       <h3 class="preview-title"><i data-ui-icon="layout-template"></i>Что попало в файл</h3>
-      <p class="step-note">Это не&nbsp;картинка исходной страницы, а&nbsp;то, что реально лежит в&nbsp;презентации.</p>
+      <p class="step-note">Не&nbsp;картинка страницы, а&nbsp;то, что реально лежит в&nbsp;файле.</p>
       <div class="slides" id="slides"></div>
     </div>
   </section>

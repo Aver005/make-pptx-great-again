@@ -383,12 +383,16 @@ h2 {
 #step-1 .compact {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
 }
 #step-1 .compact .step-note {
   margin: 0;
-  flex: 1 1 320px;
+  flex: 1 1 300px;
+}
+#step-1 .compact .btn {
+  margin-left: auto;
 }
 .step-note:last-child {
   margin-bottom: 0;
@@ -1061,50 +1065,25 @@ a:focus-visible {
 
 @media (max-width: 760px) {
   .wrap {
-    padding: 28px 16px 48px;
+    padding: 24px 16px 40px;
   }
   .head {
-    margin-bottom: 28px;
-  }
-  .step {
-    padding: 20px 18px 20px 50px;
-    border-radius: var(--r-md);
-    margin-bottom: 12px;
-  }
-  details.fold summary {
-    align-items: flex-start;
-  }
-  details.fold summary > svg:first-child,
-  summary svg.chev {
-    margin-top: 2px;
-  }
-  .step-head {
-    align-items: flex-start;
-    gap: 8px;
-    margin: 0 0 10px -32px;
-  }
-  .step-no {
-    width: 24px;
-    height: 24px;
-    margin-top: 2px;
-    font-size: 13px;
-    border-radius: 8px;
-  }
-  .step-no svg {
-    width: 14px;
-    height: 14px;
-  }
-  .btn {
-    font-size: 14px;
+    margin-bottom: 24px;
   }
   .brand {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .brand .pill {
-    margin-left: 0;
+    margin-left: auto;
+  }
+  .pill-text {
+    display: none;
+  }
+  .pill {
+    padding: 7px 9px;
   }
   h1 {
-    font-size: 30px;
+    font-size: 29px;
   }
   h1 br {
     display: none;
@@ -1112,50 +1091,158 @@ a:focus-visible {
   h2 {
     font-size: 19px;
   }
+  .tagline {
+    font-size: 16px;
+  }
+
+  /* Карточек на телефоне нет: их рамка и внутренние поля съедали до четверти
+     ширины, а колонка под номером пункта — ещё столько же. Разделы отделяются
+     линией, текст идёт от края до края. */
+  .step {
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0 0 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .step.waiting {
+    border: none;
+    border-bottom: 1px solid var(--line);
+    opacity: 0.5;
+  }
+  .step.waiting .btn {
+    border-style: dashed;
+  }
+  .result .step::before {
+    display: none;
+  }
+  .result .step:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+  .step-head {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin: 0 0 8px;
+  }
+  .demo-mark {
+    order: 3;
+    font-size: 12.5px;
+  }
+  .step-no {
+    width: 24px;
+    height: 24px;
+    margin-top: 0;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .step-no svg {
+    width: 14px;
+    height: 14px;
+  }
+  .step-note {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+
+  details.fold summary {
+    align-items: flex-start;
+    font-size: 14.5px;
+    gap: 10px;
+  }
+  details.fold summary > svg:first-child,
+  summary svg.chev {
+    margin-top: 2px;
+  }
+  details.fold {
+    margin-top: 10px;
+    padding-top: 2px;
+  }
+
   .drop {
-    padding: 24px 16px 22px;
+    padding: 20px 12px 18px;
     border-radius: var(--r-sm);
   }
   .drop-icon {
-    width: 44px;
-    height: 44px;
-    margin-bottom: 12px;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
     border-radius: var(--r-sm);
   }
   .drop-icon svg {
-    width: 21px;
-    height: 21px;
+    width: 20px;
+    height: 20px;
   }
   .big-label {
-    font-size: 17px;
+    font-size: 16px;
+  }
+  .hint {
+    margin-bottom: 14px;
+  }
+  .row {
+    gap: 8px;
   }
   .row .btn {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+  }
+  .btn {
+    font-size: 14px;
+    padding: 12px 14px;
+  }
+  .btn.big {
+    font-size: 16px;
+    padding: 15px 18px;
+  }
+  #step-1 .compact {
+    display: block;
+  }
+  #step-1 .compact .btn {
+    width: 100%;
+  }
+
+  .stats {
+    gap: 6px;
+  }
+  .stat {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+  .save-as {
+    font-size: 12.5px;
+  }
+  .note {
+    font-size: 14.5px;
+    padding: 12px 13px;
+    gap: 9px;
+  }
+  .notes {
+    margin-top: 12px;
+  }
+  .preview {
+    margin-top: 18px;
+    padding-top: 16px;
   }
   .slides {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px 10px;
   }
-  .small-screen {
-    display: flex;
-    gap: 11px;
-    align-items: flex-start;
-    border: 1px solid rgba(245, 182, 63, 0.28);
-    background: var(--warn-soft);
-    border-radius: var(--r-md);
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    line-height: 1.5;
-    color: #f0dcb4;
+  .faq-more {
+    margin-top: 16px;
+    padding-top: 12px;
+    font-size: 14.5px;
   }
-  .small-screen svg {
-    width: 18px;
-    height: 18px;
-    flex: none;
-    color: var(--warn);
-    margin-top: 2px;
-    stroke-width: 2.1;
+
+  footer {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+  .privacy {
+    font-size: 14px;
+    padding: 12px 14px;
+    gap: 9px;
   }
   .foot-row {
     gap: 8px;
@@ -1165,21 +1252,101 @@ a:focus-visible {
   }
   .foot-row > span {
     flex: 1 0 100%;
+    margin-right: 0;
   }
-  #step-1 .compact {
-    display: block;
+
+  .small-screen {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    border: 1px solid rgba(245, 182, 63, 0.28);
+    background: var(--warn-soft);
+    border-radius: var(--r-sm);
+    padding: 11px 13px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #f0dcb4;
   }
-  #step-1 .compact .step-note {
-    margin-bottom: 14px;
+  .small-screen svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+    color: var(--warn);
+    margin-top: 2px;
+    stroke-width: 2.1;
   }
 }
 
 @media (max-width: 420px) {
+  .wrap {
+    padding: 20px 12px 36px;
+  }
   .logo {
-    font-size: 23px;
+    font-size: 22px;
+  }
+  h1 {
+    font-size: 26px;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 18px;
+  }
+  .tagline,
+  .step-note {
+    font-size: 15px;
   }
   .slides {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 8px;
+  }
+  .thumb .no {
+    font-size: 11px;
+  }
+  .stat {
+    font-size: 12.5px;
+    padding: 5px 9px;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 420px) {
+  .legal {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: 320px) {
+  .wrap {
+    padding: 18px 10px 32px;
+  }
+  h1 {
+    font-size: 23px;
+  }
+  h2 {
+    font-size: 17px;
+  }
+  .tagline,
+  .step-note,
+  details.fold summary {
+    font-size: 14px;
+  }
+  .step-head {
+    gap: 8px;
+  }
+  .big-label {
+    font-size: 15px;
+  }
+  .btn {
+    font-size: 13.5px;
+    padding: 12px 12px;
+  }
+  .slides {
+    grid-template-columns: 1fr;
+  }
+  .note {
+    font-size: 14px;
   }
 }
 
