@@ -397,6 +397,34 @@ h2 {
 .step-note:last-child {
   margin-bottom: 0;
 }
+.style-line {
+  margin: 14px 0 0;
+  font-size: 15px;
+  max-width: none;
+}
+.style-line b {
+  color: var(--ink);
+}
+.linkish {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  border-bottom: 1px dashed currentColor;
+}
+.linkish:hover {
+  color: #ff7a5f;
+}
+.linkish svg {
+  width: 15px;
+  height: 15px;
+}
 
 /* ---------- кнопки ---------- */
 

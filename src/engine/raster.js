@@ -151,10 +151,10 @@
       for (const cap of slide.captures) {
         const el = win.document.querySelector(`[data-mpga-cap="${cap.id}"]`);
         if (!el) continue;
+        // Размер снят при разборе: к моменту съёмки повороты уже вернулись
+        // на место, и живой прямоугольник был бы описанным, а не своим.
         let rect = el.getBoundingClientRect();
-        if (cap.kind === "transform" && el.offsetWidth) {
-          rect = { width: el.offsetWidth, height: el.offsetHeight };
-        }
+        if (cap.w > 0.5 && cap.h > 0.5) rect = { width: cap.w, height: cap.h };
         try {
           const isSvg = el.tagName.toLowerCase() === "svg";
           const shot = isSvg

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="mpga-contract" content="1">
+<title>Стенд эффектов: что движок обязан унести в PowerPoint</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e9ecf1;font-family:Arial,sans-serif;color:#131a2a}
+.slide{width:1160px;height:652.5px;position:relative;overflow:hidden;background:#fff;
+       margin:0 auto 24px;padding:48px 62px}
+h1{font-size:56px;line-height:1.03;margin:0 0 18px}
+h2{font-size:34px;line-height:1.1;margin:0 0 18px}
+p{font-size:17px;line-height:1.45;color:#4a5262;margin:0 0 12px}
+.ey{font-size:11px;font-weight:bold;letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px;color:#6b7481}
+.num{position:absolute;right:30px;bottom:18px;font-size:11px;color:#9aa3b2}
+
+/* 1. титул: градиентный фон, полупрозрачная плашка, тень */
+.hero{background:linear-gradient(135deg,#1b2a4a 0%,#2f5d8c 55%,#3f8ea8 100%);color:#fff;padding:72px 72px}
+.hero h1{color:#fff}
+.hero .ey{color:#a9c7df}
+.hero p{color:#d7e5f0;font-size:20px;max-width:720px}
+.badge{position:absolute;right:62px;top:64px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.55);
+       color:#fff;font-size:13px;font-weight:bold;padding:10px 18px;border-radius:999px}
+.plate{position:absolute;left:72px;bottom:64px;background:rgba(255,255,255,.12);padding:16px 22px;border-left:4px solid #7fd4e8;
+       color:#eaf4fa;font-size:15px}
+
+/* 2. карточки: тени, разные радиусы, пунктир */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.card{background:#fff;border:1px solid #dfe4ea;border-radius:14px;padding:22px;height:186px;
+      box-shadow:0 6px 18px rgba(20,30,60,.14)}
+.card i{width:28px;height:28px;color:#2f5d8c;margin-bottom:10px;display:block}
+.card b{font-size:18px;display:block;margin-bottom:6px}
+.card small{font-size:13px;color:#6b7481;line-height:1.35}
+.card.dash{border:2px dashed #c2b18a;background:#fdfaf2;box-shadow:none}
+.card.corner{border-radius:14px 14px 14px 44px;background:#f4f8fb;border-color:#cbdcea}
+
+/* 3. таблица сравнения */
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:15px}
+th{background:#1b2a4a;color:#fff;text-align:left;padding:12px 16px;font-size:14px}
+td{border-bottom:1px solid #e2e6ec;padding:11px 16px;color:#39414f}
+tr:nth-child(even) td{background:#f6f8fb}
+td.good{color:#1f7a4d;font-weight:bold}
+td.bad{color:#a8402f;font-weight:bold}
+
+/* 4. KPI и полосы */
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:22px}
+.kpi div{background:#f6f8fb;border-top:4px solid #2f5d8c;padding:18px}
+.kpi b{display:block;font-size:44px;line-height:1;color:#1b2a4a}
+.kpi span{display:block;font-size:13px;color:#6b7481;margin-top:8px}
+.bars{margin-top:28px}
+.bar{height:26px;background:#eef1f5;border-radius:13px;margin-bottom:14px;position:relative}
+.bar i{display:block;height:26px;border-radius:13px;background:linear-gradient(90deg,#2f5d8c,#5fb0c9)}
+.bar span{position:absolute;right:12px;top:4px;font-size:13px;font-weight:bold;color:#1b2a4a}
+
+/* 5. таймлайн со стрелками */
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:34px}
+.tl div{background:#f4f7fa;border:1px solid #d9e1ea;padding:18px 20px;margin-right:22px;position:relative}
+.tl b{font-size:16px;color:#1b2a4a;display:block;margin-bottom:6px}
+.tl small{font-size:13px;color:#6b7481;line-height:1.3}
+.wedge{position:absolute;right:0;top:0;width:340px;height:652.5px;background:#1b2a4a;
+       clip-path:polygon(120px 0,340px 0,340px 652px,0 652px)}
+
+/* 6. цитата */
+.quote{background:#141c2e;color:#fff;padding:0}
+.quote .mark{position:absolute;left:56px;top:60px;font-size:180px;line-height:1;color:#3f5f8f}
+.quote blockquote{position:absolute;left:170px;top:150px;right:120px;font-size:30px;line-height:1.35;margin:0;color:#fff}
+.quote .who{position:absolute;left:172px;bottom:120px;font-size:15px;color:#9fb4d4}
+.tag{position:absolute;right:90px;bottom:96px;background:#e8c76a;color:#2a2110;font-weight:bold;
+     font-size:15px;padding:12px 22px;transform:rotate(-6deg)}
+
+/* 7. диаграмма столбиками */
+.chart{display:flex;align-items:flex-end;gap:26px;height:300px;margin-top:26px;padding-left:8px}
+.chart div{flex:1;background:linear-gradient(180deg,#5fb0c9,#2f5d8c);border-radius:8px 8px 0 0;position:relative}
+.chart div b{position:absolute;top:-26px;left:0;right:0;text-align:center;font-size:15px;color:#1b2a4a}
+.chart div span{position:absolute;bottom:-28px;left:0;right:0;text-align:center;font-size:13px;color:#6b7481}
+
+/* 8. финал */
+.end{background:radial-gradient(circle at 30% 40%,#2f5d8c 0%,#141c2e 70%);color:#fff}
+.end h2{color:#fff;font-size:44px}
+.end p{color:#c6d6e6;font-size:18px;max-width:640px}
+.ring{position:absolute;right:110px;top:180px;width:240px;height:240px;border-radius:50%;
+      border:22px solid #5fb0c9;opacity:.85}
+</style>
+</head>
+<body>
+<main>
+
+<section class="slide hero" data-transition="fade">
+  <div class="ey">Стенд эффектов MPGA</div>
+  <h1>Что движок обязан<br>унести в PowerPoint</h1>
+  <p>Градиент, тень, прозрачность, таблица, поворот, стрелка. Каждый слайд проверяет отдельную возможность — и должен остаться редактируемым.</p>
+  <div class="badge">8 слайдов · 12 проверок</div>
+  <div class="plate">Если хоть один элемент уехал в картинку — гипотеза не подтвердилась.</div>
+</section>
+
+<section class="slide" data-transition="push">
+  <div class="ey">Проверка 1 · Тени и радиусы</div>
+  <h2>Карточки с объёмом</h2>
+  <p>Тень, скругление, пунктирная рамка и разный радиус углов — всё это в PowerPoint есть.</p>
+  <div class="cards" data-anim="wipe">
+    <div class="card"><i data-lucide="layers"></i><b>Тень</b><small>box-shadow переносится в эффект тени фигуры</small></div>
+    <div class="card dash"><i data-lucide="scissors"></i><b>Пунктир</b><small>border-style: dashed становится штриховой линией</small></div>
+    <div class="card corner"><i data-lucide="shapes"></i><b>Углы</b><small>Разный радиус по углам — отдельная фигура</small></div>
+  </div>
+  <div class="num">2</div>
+</section>
+
+<section class="slide" data-transition="wipe">
+  <div class="ey">Проверка 2 · Таблица</div>
+  <h2>Сравнение подходов</h2>
+  <table>
+    <tr><th>Признак</th><th>Скриншот слайда</th><th>Родные объекты</th></tr>
+    <tr><td>Текст правится</td><td class="bad">нет</td><td class="good">да</td></tr>
+    <tr><td>Размер файла</td><td class="bad">мегабайты</td><td class="good">сотни килобайт</td></tr>
+    <tr><td>Замена цвета темы</td><td class="bad">невозможна</td><td class="good">обычным способом</td></tr>
+    <tr><td>Поиск по презентации</td><td class="bad">не находит</td><td class="good">находит</td></tr>
+  </table>
+  <div class="num">3</div>
+</section>
+
+<section class="slide" data-transition="fade">
+  <div class="ey">Проверка 3 · Цифры и полосы</div>
+  <h2>Показатели</h2>
+  <div class="kpi" data-anim="fade">
+    <div><b>94%</b><span>объектов остаются родными</span></div>
+    <div><b>8</b><span>видов эффектов на стенде</span></div>
+    <div><b>0,9</b><span>МБ офлайн-копия</span></div>
+    <div><b>3с</b><span>на сборку колоды</span></div>
+  </div>
+  <div class="bars" data-anim="split">
+    <div class="bar"><i style="width:82%"></i><span>82%</span></div>
+    <div class="bar"><i style="width:64%"></i><span>64%</span></div>
+    <div class="bar"><i style="width:41%"></i><span>41%</span></div>
+  </div>
+  <div class="num">4</div>
+</section>
+
+<section class="slide" data-transition="push">
+  <div class="wedge"></div>
+  <div class="ey">Проверка 4 · Стрелки</div>
+  <h2>Порядок работы</h2>
+  <div class="tl" style="width:740px">
+    <div><b>Разбор</b><small>HTML монтируется в кадр</small></div>
+    <div><b>Замер</b><small>снимается геометрия</small></div>
+    <div><b>Сборка</b><small>объекты кладутся на слайд</small></div>
+    <div><b>Проверка</b><small>рендер сверяется</small></div>
+  </div>
+  <svg viewBox="0 0 740 90" style="width:740px;height:90px;margin-top:26px">
+    <line x1="20" y1="45" x2="700" y2="45" stroke="#2f5d8c" stroke-width="4"/>
+    <path d="M686 32l20 13-20 13" fill="none" stroke="#2f5d8c" stroke-width="4"/>
+    <circle cx="20" cy="45" r="9" fill="#2f5d8c"/>
+    <text x="360" y="30" text-anchor="middle" font-size="14" fill="#6b7481">одна секунда на слайд</text>
+  </svg>
+  <div class="num">5</div>
+</section>
+
+<section class="slide quote" data-transition="fade">
+  <div class="mark">«</div>
+  <blockquote>Презентация перестаёт быть картинкой тогда, когда каждую её часть можно взять и подвинуть.</blockquote>
+  <div class="who">из документации проекта</div>
+  <div class="tag">поворот −6°</div>
+  <div class="num" style="color:#5b6b86">6</div>
+</section>
+
+<section class="slide" data-transition="wipe">
+  <div class="ey">Проверка 5 · Диаграмма</div>
+  <h2>Доля родных объектов по слайдам</h2>
+  <div class="chart" data-anim="blinds">
+    <div style="height:74%"><b>92%</b><span>титул</span></div>
+    <div style="height:86%"><b>96%</b><span>карточки</span></div>
+    <div style="height:62%"><b>81%</b><span>таблица</span></div>
+    <div style="height:90%"><b>98%</b><span>цифры</span></div>
+    <div style="height:55%"><b>74%</b><span>схема</span></div>
+  </div>
+  <div class="num">7</div>
+</section>
+
+<section class="slide end" data-transition="fade">
+  <div class="ey" style="color:#9fb4d4">Итог</div>
+  <h2>Движок должен уметь<br>всё перечисленное</h2>
+  <p>Каждый эффект на стенде либо переносится родным объектом PowerPoint, либо честно объявляется непереносимым. Третьего — тихой картинки вместо содержимого — быть не должно.</p>
+  <div class="ring"></div>
+  <div class="num" style="color:#7f8fa8">8</div>
+</section>
+
+</main>
+</body>
+</html>

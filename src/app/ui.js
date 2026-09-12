@@ -158,6 +158,64 @@
     }
   }
 
+  function gradCss(grad) {
+    const stops = grad.stops
+      .map(
+        (s) =>
+          `rgba(${hexRgb(s.hex)},${s.alpha != null ? s.alpha : 1}) ${(s.pos * 100).toFixed(1)}%`,
+      )
+      .join(",");
+    return grad.kind === "radial"
+      ? `radial-gradient(${grad.round ? "circle " : ""}at ${grad.center.x}% ${grad.center.y}%,${stops})`
+      : `linear-gradient(${grad.angle}deg,${stops})`;
+  }
+
+  function hexRgb(value) {
+    const n = parseInt(value, 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  }
+
+  function tableNode(table) {
+    const host = document.createElement("div");
+    host.style.cssText = `left:${table.x}px;top:${table.y}px;width:${table.w}px;height:${table.h}px`;
+    const grid = document.createElement("table");
+    grid.style.cssText = "width:100%;height:100%;border-collapse:collapse;table-layout:fixed";
+    for (const row of table.rows) {
+      const tr = document.createElement("tr");
+      for (const cell of row) {
+        const td = document.createElement("td");
+        const first = cell.runs.find((r) => !r.br) || {};
+        td.textContent = cell.runs.map((r) => (r.br ? " " : r.text)).join("");
+        td.style.cssText =
+          `padding:${cell.pad.map((v) => `${v}px`).join(" ")};text-align:${cell.align};` +
+          `font:${first.bold ? "700" : "400"} ${first.size || 14}px Arial,sans-serif;` +
+          `color:#${first.color || "000"};` +
+          (cell.fill ? `background:#${cell.fill};` : "") +
+          cell.borders
+            .map((b, i) =>
+              b ? `border-${["top", "right", "bottom", "left"][i]}:${b.w}px solid #${b.hex};` : "",
+            )
+            .join("");
+        if (cell.colspan > 1) td.colSpan = cell.colspan;
+        if (cell.rowspan > 1) td.rowSpan = cell.rowspan;
+        tr.appendChild(td);
+      }
+      grid.appendChild(tr);
+    }
+    host.appendChild(grid);
+    return host;
+  }
+
+  // Оформление тянет жребий здесь, а не в чате: у нейросети случайности нет,
+  // и по одному и тому же заданию она делает одну и ту же колоду.
+  function rollStyle() {
+    const base = window.MPGA_PROMPT || "";
+    const style = window.MPGA_STYLE ? window.MPGA_STYLE.draw(10) : null;
+    $("prompt-text").value = style ? `${base}\n\n${style.text}` : base;
+    const label = $("style-name");
+    if (label && style) label.textContent = style.theme;
+  }
+
   function renderPreview(ir) {
     const host = $("slides");
     host.innerHTML = "";
@@ -172,27 +230,49 @@
       stage.style.cssText =
         `width:${ir.slideW}px;height:${ir.slideH}px;` +
         `background:${slide.background ? "#" + slide.background : "#fff"}`;
+      if (slide.backgroundGrad) stage.style.backgroundImage = gradCss(slide.backgroundGrad);
 
-      for (const box of slide.boxes) {
-        const node = document.createElement("div");
-        let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`;
-        if (box.fill) css += `background:#${box.fill};`;
-        if (box.stroke) css += `border:${box.strokeW}px solid #${box.stroke};`;
-        if (box.radius === -1) css += "border-radius:50%;";
-        else if (box.radius > 0) css += `border-radius:${box.radius}px;`;
-        if (box.rot) css += `transform:rotate(${box.rot}deg);`;
-        node.style.cssText = css;
-        stage.appendChild(node);
-      }
-      for (const image of slide.images) {
-        if (!image.data) continue;
-        const node = document.createElement("img");
-        node.src = image.data;
-        node.alt = "";
-        node.style.cssText =
-          `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
-          (image.rot ? `;transform:rotate(${image.rot}deg)` : "");
-        stage.appendChild(node);
+      // Порядок тот же, что в файле: по месту в разметке, текст сверху.
+      const layer = [
+        ...slide.boxes.map((box) => ({ seq: box.seq || 0, box })),
+        ...slide.images.map((image) => ({ seq: image.seq || 0, image })),
+        ...(slide.tables || []).map((table) => ({ seq: table.seq || 0, table })),
+      ].sort((a, b) => a.seq - b.seq);
+
+      for (const item of layer) {
+        if (item.box) {
+          const box = item.box;
+          const node = document.createElement("div");
+          let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`;
+          if (box.fill) css += `background:#${box.fill};`;
+          if (box.alpha != null && box.alpha < 1) css += `opacity:${box.alpha};`;
+          if (box.grad) css += `background-image:${gradCss(box.grad)};`;
+          if (box.stroke)
+            css += `border:${box.strokeW}px ${box.dash === "dash" ? "dashed" : box.dash === "sysDot" ? "dotted" : "solid"} #${box.stroke};`;
+          if (box.radius === -1) css += "border-radius:50%;";
+          else if (box.radius > 0) css += `border-radius:${box.radius}px;`;
+          if (box.rot) css += `transform:rotate(${box.rot}deg);`;
+          if (box.shadow)
+            css += `box-shadow:${box.shadow.dx}px ${box.shadow.dy}px ${box.shadow.blur}px rgba(0,0,0,${box.shadow.alpha});`;
+          if (box.clip)
+            css += `clip-path:polygon(${box.clip.map(([x, y]) => `${x * 100}% ${y * 100}%`).join(",")});`;
+          node.style.cssText = css;
+          stage.appendChild(node);
+          continue;
+        }
+        if (item.image) {
+          const image = item.image;
+          if (!image.data) continue;
+          const node = document.createElement("img");
+          node.src = image.data;
+          node.alt = "";
+          node.style.cssText =
+            `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
+            (image.rot ? `;transform:rotate(${image.rot}deg)` : "");
+          stage.appendChild(node);
+          continue;
+        }
+        stage.appendChild(tableNode(item.table));
       }
       for (const text of slide.texts) {
         const node = document.createElement("div");
@@ -209,6 +289,7 @@
                 ? "flex-end"
                 : "flex-start"
           };`;
+        if (text.rot) node.style.transform = `rotate(${text.rot}deg)`;
         node.innerHTML =
           "<span>" +
           text.runs
@@ -392,10 +473,10 @@
     paintUiIcons();
     bindFolds();
 
-    $("prompt-text").value = window.MPGA_PROMPT || "";
-
+    rollStyle();
+    $("reroll").onclick = () => rollStyle();
     $("copy-prompt").onclick = (event) =>
-      copy(window.MPGA_PROMPT || "", event.currentTarget, "Скопировано — вставьте в чат");
+      copy($("prompt-text").value, event.currentTarget, "Скопировано — вставьте в чат");
     $("pick").onclick = () => $("file").click();
     $("file").onchange = async (event) => {
       const file = event.target.files[0];

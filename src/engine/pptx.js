@@ -10,6 +10,12 @@
     justify: "justify",
   };
 
+  const VALIGN = { top: "top", middle: "middle", bottom: "bottom", baseline: "middle" };
+
+  // Эффектов, которых нет в API PptxGenJS (градиент, анимация, переход),
+  // добьёмся правкой XML уже собранного файла — фигуре достаточно дать имя.
+  const objName = (kind, si, n) => `mpga-${kind}-${si}-${n}`;
+
   function build(ir, meta = {}) {
     const pptx = new PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
@@ -18,52 +24,126 @@
     pptx.author = meta.author || "";
 
     const toIn = (px) => (px * ir.epx) / EMU_PER_INCH;
+    const patches = [];
 
     for (const slide of ir.slides) {
       const s = pptx.addSlide();
+      const si = slide.index;
       const dy = slide.offsetY || 0;
+      let marked = 0;
       if (slide.background) s.background = { color: slide.background };
 
-      for (const box of slide.boxes) {
-        const w = Math.max(0.01, toIn(box.w));
-        const h = Math.max(0.01, toIn(box.h));
-        const opts = { x: toIn(box.x), y: toIn(box.y + dy), w, h };
-
-        if (box.fill) {
-          opts.fill = { color: box.fill };
-          if (box.alpha != null && box.alpha < 1)
-            opts.fill.transparency = Math.round((1 - box.alpha) * 100);
-        } else {
-          opts.fill = { color: "FFFFFF", transparency: 100 };
+      if (slide.backgroundGrad) {
+        const name = objName("grad", si, marked++);
+        let grad = slide.backgroundGrad;
+        // radial-gradient(circle …) — настоящий круг, а заливка по пути в
+        // PowerPoint всегда повторяет форму фигуры. Значит, фигура должна быть
+        // квадратом: лишнее уйдёт за край слайда и не помешает.
+        let box = { x: 0, y: 0, w: ir.slideW, h: ir.slideH + 2 * dy };
+        if (grad.kind === "radial" && grad.round) {
+          const cx = (grad.center.x / 100) * box.w;
+          const cy = (grad.center.y / 100) * box.h;
+          const reach = Math.max(
+            Math.hypot(cx, cy),
+            Math.hypot(box.w - cx, cy),
+            Math.hypot(cx, box.h - cy),
+            Math.hypot(box.w - cx, box.h - cy),
+          );
+          box = { x: cx - reach, y: cy - reach, w: reach * 2, h: reach * 2 };
+          grad = { ...grad, center: { x: 50, y: 50 } };
         }
-        if (box.stroke)
-          opts.line = { color: box.stroke, width: Math.max(0.25, box.strokeW * 0.75) };
-        if (box.rot) opts.rotate = box.rot;
-
-        let shape = "rect";
-        if (box.radius === -1) shape = "ellipse";
-        else if (box.radius > 0.5) {
-          shape = "roundRect";
-          opts.rectRadius = Math.min(toIn(box.radius), Math.min(w, h) / 2);
-        }
-        s.addShape(shape, opts);
+        s.addShape("rect", {
+          x: toIn(box.x),
+          y: toIn(box.y),
+          w: toIn(box.w),
+          h: toIn(box.h),
+          fill: { color: grad.stops[0].hex },
+          line: { type: "none" },
+          objectName: name,
+        });
+        patches.push({ slide: si, name, grad });
       }
 
-      for (const image of slide.images) {
-        const opts = {
-          x: toIn(image.x),
-          y: toIn(image.y + dy),
-          w: Math.max(0.01, toIn(image.w)),
-          h: Math.max(0.01, toIn(image.h)),
-        };
-        if (image.rot) opts.rotate = image.rot;
-        if (image.data) s.addImage({ data: image.data, ...opts });
-        else
-          s.addShape("rect", {
-            ...opts,
-            fill: { color: "F2F2F2" },
-            line: { color: "BFBFBF", width: 1 },
-          });
+      // Фигуры, картинки и таблицы кладутся в порядке разметки: кто позже
+      // написан, тот выше. Иначе схема накрывает карточки, поверх которых
+      // она нарисована в браузере.
+      const layer = [
+        ...slide.boxes.map((box) => ({ seq: box.seq || 0, box })),
+        ...slide.images.map((image) => ({ seq: image.seq || 0, image })),
+        ...(slide.tables || []).map((table) => ({ seq: table.seq || 0, table })),
+      ].sort((a, b) => a.seq - b.seq);
+
+      for (const item of layer) {
+        if (item.box) {
+          const box = item.box;
+          const w = Math.max(0.01, toIn(box.w));
+          const h = Math.max(0.01, toIn(box.h));
+          const opts = { x: toIn(box.x), y: toIn(box.y + dy), w, h };
+
+          if (box.grad) {
+            const name = objName("grad", si, marked++);
+            opts.objectName = name;
+            opts.fill = { color: box.grad.stops[0].hex };
+            patches.push({ slide: si, name, grad: box.grad, anim: box.anim });
+          } else if (box.fill) {
+            opts.fill = { color: box.fill };
+            if (box.alpha != null && box.alpha < 1)
+              opts.fill.transparency = Math.round((1 - box.alpha) * 100);
+          } else {
+            opts.fill = { color: "FFFFFF", transparency: 100 };
+          }
+
+          if (box.stroke) {
+            opts.line = { color: box.stroke, width: Math.max(0.25, box.strokeW * 0.75) };
+            if (box.dash && box.dash !== "solid") opts.line.dashType = box.dash;
+            if (box.strokeAlpha != null && box.strokeAlpha < 1)
+              opts.line.transparency = Math.round((1 - box.strokeAlpha) * 100);
+          }
+          if (box.rot) opts.rotate = box.rot;
+          if (box.shadow) opts.shadow = shadowOpts(box.shadow);
+
+          if (box.clip) {
+            if (!opts.objectName) opts.objectName = objName("clip", si, marked++);
+            patches.push({ slide: si, name: opts.objectName, clip: box.clip, anim: box.anim });
+          } else if (box.anim && !opts.objectName) {
+            opts.objectName = objName("anim", si, marked++);
+            patches.push({ slide: si, name: opts.objectName, anim: box.anim });
+          }
+
+          let shape = "rect";
+          if (box.radius === -1) shape = "ellipse";
+          else if (box.radius > 0.5) {
+            shape = "roundRect";
+            opts.rectRadius = Math.min(toIn(box.radius), Math.min(w, h) / 2);
+          }
+          s.addShape(shape, opts);
+          continue;
+        }
+
+        if (item.image) {
+          const image = item.image;
+          const opts = {
+            x: toIn(image.x),
+            y: toIn(image.y + dy),
+            w: Math.max(0.01, toIn(image.w)),
+            h: Math.max(0.01, toIn(image.h)),
+          };
+          if (image.rot) opts.rotate = image.rot;
+          if (image.anim) {
+            opts.objectName = objName("anim", si, marked++);
+            patches.push({ slide: si, name: opts.objectName, anim: image.anim });
+          }
+          if (image.data) s.addImage({ data: image.data, ...opts });
+          else
+            s.addShape("rect", {
+              ...opts,
+              fill: { color: "F2F2F2" },
+              line: { color: "BFBFBF", width: 1 },
+            });
+          continue;
+        }
+
+        addTable(s, item.table, toIn, dy);
       }
 
       for (const text of slide.texts) {
@@ -79,28 +159,16 @@
         if (align === "right") left = text.x - padX;
         if (align === "left") left = text.x - 1;
 
-        const items = [];
-        for (let i = 0; i < runs.length; i++) {
-          const run = runs[i];
-          if (run.br) {
-            if (items.length) items[items.length - 1].options.breakLine = true;
-            continue;
-          }
-          items.push({
-            text: run.text,
-            options: {
-              fontFace: run.font || "Arial",
-              fontSize: +(run.size * 0.75).toFixed(1),
-              bold: !!run.bold,
-              italic: !!run.italic,
-              underline: run.underline ? { style: "sng" } : undefined,
-              strike: run.strike ? "sngStrike" : undefined,
-              color: run.color || "000000",
-              charSpacing: run.spacing > 0.1 ? +(run.spacing * 0.75).toFixed(2) : undefined,
-              breakLine: false,
-            },
-          });
-        }
+        const items = runs
+          .map((run) => (run.br ? { br: true } : { text: run.text, options: runOpts(run) }))
+          .reduce((acc, item) => {
+            if (item.br) {
+              if (acc.length) acc[acc.length - 1].options.breakLine = true;
+              return acc;
+            }
+            acc.push(item);
+            return acc;
+          }, []);
         if (!items.length) continue;
 
         const opts = {
@@ -118,18 +186,106 @@
           fontSize: +(size * 0.75).toFixed(1),
           color: first.color || "000000",
         };
+        if (text.rot) opts.rotate = text.rot;
+        if (text.anim) {
+          opts.objectName = objName("anim", si, marked++);
+          patches.push({ slide: si, name: opts.objectName, anim: text.anim });
+        }
+        if (text.shadow) opts.shadow = shadowOpts(text.shadow);
         const ratio = text.lh / size;
         if (ratio > 1.05 && ratio < 4) opts.lineSpacingMultiple = +ratio.toFixed(2);
         s.addText(items, opts);
       }
     }
 
+    pptx.mpgaPatches = patches;
     return pptx;
+  }
+
+  function runOpts(run) {
+    const opts = {
+      fontFace: run.font || "Arial",
+      fontSize: +(run.size * 0.75).toFixed(1),
+      bold: !!run.bold,
+      italic: !!run.italic,
+      underline: run.underline ? { style: "sng" } : undefined,
+      strike: run.strike ? "sngStrike" : undefined,
+      color: run.color || "000000",
+      charSpacing: run.spacing > 0.1 ? +(run.spacing * 0.75).toFixed(2) : undefined,
+      breakLine: false,
+    };
+    if (run.fade != null && run.fade < 1) opts.transparency = Math.round((1 - run.fade) * 100);
+    return opts;
+  }
+
+  // PptxGenJS переписывает объект тени на месте (градусы становятся
+  // шестидесятитысячными), поэтому каждой фигуре — свой свежий объект.
+  function shadowOpts(shadow) {
+    const dist = Math.hypot(shadow.dx, shadow.dy);
+    const angle =
+      ((Math.round((Math.atan2(shadow.dy, shadow.dx) * 180) / Math.PI) % 360) + 360) % 360;
+    return {
+      type: "outer",
+      color: shadow.hex,
+      opacity: Math.max(0.05, Math.min(1, shadow.alpha)),
+      blur: +(shadow.blur * 0.75).toFixed(2),
+      offset: +(dist * 0.75).toFixed(2),
+      angle,
+    };
+  }
+
+  function addTable(slide, table, toIn, dy) {
+    const rows = table.rows.map((row) =>
+      row.map((cell) => {
+        const opts = {
+          align: ALIGN[cell.align] || "left",
+          valign: VALIGN[cell.valign] || "middle",
+          margin: cell.pad.map((v) => +(v * 0.75).toFixed(1)),
+        };
+        if (cell.fill && cell.fillAlpha > 0.02) {
+          opts.fill = { color: cell.fill };
+          if (cell.fillAlpha < 1) opts.fill.transparency = Math.round((1 - cell.fillAlpha) * 100);
+        }
+        if (cell.colspan > 1) opts.colspan = cell.colspan;
+        if (cell.rowspan > 1) opts.rowspan = cell.rowspan;
+        opts.border = cell.borders.map((b) =>
+          b
+            ? {
+                type: b.dash === "solid" ? "solid" : "dash",
+                pt: +(b.w * 0.75).toFixed(2),
+                color: b.hex,
+              }
+            : { type: "none" },
+        );
+        const first = cell.runs.find((r) => !r.br);
+        if (first) {
+          opts.fontFace = first.font || "Arial";
+          opts.fontSize = +(first.size * 0.75).toFixed(1);
+          opts.color = first.color || "000000";
+          opts.bold = !!first.bold;
+        }
+        return {
+          text: cell.runs.map((run) => ({ text: run.text, options: runOpts(run) })),
+          options: opts,
+        };
+      }),
+    );
+
+    slide.addTable(rows, {
+      x: toIn(table.x),
+      y: toIn(table.y + dy),
+      w: toIn(table.w),
+      colW: table.widths.map((v) => toIn(v)),
+      rowH: table.heights.map((v) => toIn(v)),
+      autoPage: false,
+    });
   }
 
   async function toBlob(ir, meta) {
     const pptx = build(ir, meta);
-    return pptx.write({ outputType: "blob" });
+    const blob = await pptx.write({ outputType: "blob" });
+    if (!window.MPGA.applyOoxml) return blob;
+    return window.MPGA.applyOoxml(blob, ir, pptx.mpgaPatches);
   }
 
   window.MPGA = window.MPGA || {};

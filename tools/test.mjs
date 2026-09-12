@@ -7,7 +7,32 @@ const CHROME =
   process.env.MPGA_CHROME || "/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome";
 const OUT = resolve("out/test");
 const MAX_DIFF = Number(process.env.MPGA_MAX_DIFF || 9);
-const CASES = ["examples/demo.html", "examples/deck-v7.html", "examples/deck-deepseek.html"];
+// Порог у стенда эффектов свой: слайд, целиком залитый градиентом, LibreOffice
+// растягивает по своей шкале, и попиксельно он расходится с браузером даже
+// когда выглядит так же. Структуру такого слайда проверяем по XML, а не по цвету.
+const CASES = [
+  { file: "examples/demo.html" },
+  { file: "examples/deck-v7.html" },
+  { file: "examples/deck-deepseek.html" },
+  {
+    file: "examples/deck-effects.html",
+    maxDiff: 26,
+    // что обязано доехать родным объектом, а не картинкой и не пустотой
+    xml: [
+      ["slide1.xml", /<a:gradFill/, "градиентная заливка титула"],
+      ["slide1.xml", /<p:transition[^>]*><p:fade\/>/, "переход слайда"],
+      ["slide2.xml", /<a:outerShdw/, "тень карточки"],
+      ["slide2.xml", /prstDash val="dash"/, "пунктирная рамка"],
+      ["slide3.xml", /<a:tbl>/, "таблица родным объектом"],
+      ["slide4.xml", /<p:timing>/, "анимация появления"],
+      ["slide5.xml", /<a:custGeom>/, "срез через clip-path своей геометрией"],
+      ["slide6.xml", /rot="-3[0-9]{5}"/, "повёрнутая плашка"],
+      ["slide8.xml", /<a:path path="circle"/, "радиальный градиент фона"],
+    ],
+    // ни одной картинки там, где раньше уезжал целый слайд
+    maxPictures: 4,
+  },
+];
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
@@ -38,7 +63,8 @@ page.on("console", (m) => {
 });
 await page.goto("file://" + resolve("dist/MPGA.html"), { waitUntil: "load" });
 
-for (const file of CASES) {
+for (const item of CASES) {
+  const file = item.file;
   const name = basename(file, ".html");
   const dir = join(OUT, name);
   mkdirSync(dir, { recursive: true });
@@ -95,6 +121,17 @@ for (const file of CASES) {
   const textBoxes = (slide1.match(/<p:txBody>/g) || []).length;
   if (textBoxes < 2) fail(name, `на первом слайде почти нет текстовых блоков (${textBoxes})`);
   else pass(`текст — родные объекты (${textBoxes} блоков на слайде 1)`);
+
+  for (const [part, rule, what] of item.xml || []) {
+    const source = execFileSync("unzip", ["-p", pptxPath, `ppt/slides/${part}`]).toString();
+    if (!rule.test(source)) fail(name, `${what} не доехала до файла (${part})`);
+    else pass(what);
+  }
+  if (item.maxPictures != null) {
+    if (data.pictures > item.maxPictures)
+      fail(name, `картинок ${data.pictures}, ожидалось не больше ${item.maxPictures}`);
+    else pass(`в растр ушло не больше ${item.maxPictures} элементов (${data.pictures})`);
+  }
 
   execFileSync("soffice", ["--headless", "--convert-to", "pdf", "--outdir", dir, pptxPath], {
     stdio: "ignore",
@@ -155,8 +192,9 @@ for (const file of CASES) {
     diffs.push(((parseInt(raw.replace(/[^0-9]/g, ""), 10) || 0) / (1160 * 653)) * 100);
   }
   const worst = Math.max(...diffs);
-  if (worst > MAX_DIFF)
-    fail(name, `слайд отличается от браузера на ${worst.toFixed(1)}% (порог ${MAX_DIFF}%)`);
+  const limit = item.maxDiff || MAX_DIFF;
+  if (worst > limit)
+    fail(name, `слайд отличается от браузера на ${worst.toFixed(1)}% (порог ${limit}%)`);
   else
     pass(
       `совпадение с браузером: худший слайд ${worst.toFixed(1)}%, средний ${(diffs.reduce((a, b) => a + b, 0) / diffs.length).toFixed(1)}%`,

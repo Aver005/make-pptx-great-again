@@ -17,6 +17,7 @@ const ENGINE = [
   "src/engine/extract.js",
   "src/engine/raster.js",
   "src/engine/validate.js",
+  "src/engine/ooxml.js",
   "src/engine/pptx.js",
   "src/engine/convert.js",
 ];
@@ -80,7 +81,7 @@ for (const name of [...uiNames].sort()) {
   }
   uiIcons[name] = ICONS[name];
 }
-const appCode = `window.MPGA_UI_ICONS = ${JSON.stringify(uiIcons)};\n${data}\n${uiSource}`;
+const appCode = `window.MPGA_UI_ICONS = ${JSON.stringify(uiIcons)};\n${data}\n${read("src/app/themes.js")}\n${uiSource}`;
 const siteAppCode = `${appCode}\n${read("src/app/report.js")}`;
 const styles = read("src/app/styles.css");
 const template = read("src/app/index.html");
