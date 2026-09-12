@@ -26,11 +26,12 @@ const CASES = [
       ["slide3.xml", /<a:tbl>/, "таблица родным объектом"],
       ["slide4.xml", /<p:timing>/, "анимация появления"],
       ["slide5.xml", /<a:custGeom>/, "срез через clip-path своей геометрией"],
+      ["slide5.xml", /<a:cubicBezTo>|prstGeom prst="line"/, "стрелка схемы родной фигурой"],
       ["slide6.xml", /rot="-3[0-9]{5}"/, "повёрнутая плашка"],
       ["slide8.xml", /<a:path path="circle"/, "радиальный градиент фона"],
     ],
-    // ни одной картинки там, где раньше уезжал целый слайд
-    maxPictures: 4,
+    // ни одной картинки: схемы и иконки тоже стали фигурами
+    maxPictures: 0,
   },
   {
     file: "examples/deck-fine.html",
@@ -42,8 +43,10 @@ const CASES = [
       ["slide2.xml", /<a:arcTo/, "разные радиусы по углам"],
       ["slide3.xml", /numCol="2"/, "текст в две колонки"],
       ["slide3.xml", /vert="vert"/, "вертикальная подпись"],
+      ["slide4.xml", /<p:pic>/, "неразбираемый SVG уходит картинкой"],
+      ["slide4.xml", /Подпись остаётся текстом/, "подпись поверх картинки — текстом"],
     ],
-    maxPictures: 0,
+    maxPictures: 1,
   },
 ];
 

@@ -175,6 +175,40 @@
     return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
   }
 
+  // Фигуры из SVG показываем тем же SVG: в превью важно, чтобы человек увидел
+  // ровно то, что уедет в файл.
+  function svgNode(box) {
+    const host = document.createElement("div");
+    host.style.cssText = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px`;
+    const at = ([x, y]) => `${(x * box.w).toFixed(2)} ${(y * box.h).toFixed(2)}`;
+    const d = box.path
+      ? box.path
+          .map(
+            (sub) =>
+              `M${at(sub.start)}` +
+              sub.segs
+                .map((seg) =>
+                  seg.type === "L"
+                    ? `L${at(seg.to)}`
+                    : `C${at(seg.c1)} ${at(seg.c2)} ${at(seg.to)}`,
+                )
+                .join("") +
+              (sub.closed ? "Z" : ""),
+          )
+          .join(" ")
+      : box.flip
+        ? `M0 ${box.h}L${box.w} 0`
+        : `M0 0L${box.w} ${box.h}`;
+    host.innerHTML =
+      `<svg width="${box.w}" height="${box.h}" viewBox="0 0 ${box.w} ${box.h}" ` +
+      'style="overflow:visible;display:block">' +
+      `<path d="${esc(d)}" fill="${box.fill ? "#" + box.fill : "none"}" ` +
+      `stroke="${box.stroke ? "#" + box.stroke : "none"}" stroke-width="${box.strokeW || 0}" ` +
+      `stroke-linecap="${box.cap === "rnd" ? "round" : "butt"}" ` +
+      `stroke-linejoin="${box.join === "rnd" ? "round" : "miter"}"/></svg>`;
+    return host;
+  }
+
   function tableNode(table) {
     const host = document.createElement("div");
     host.style.cssText = `left:${table.x}px;top:${table.y}px;width:${table.w}px;height:${table.h}px`;
@@ -242,6 +276,10 @@
       for (const item of layer) {
         if (item.box) {
           const box = item.box;
+          if (box.path || box.kind === "line") {
+            stage.appendChild(svgNode(box));
+            continue;
+          }
           const node = document.createElement("div");
           let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`;
           if (box.fill) css += `background:#${box.fill};`;

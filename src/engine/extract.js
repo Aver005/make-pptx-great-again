@@ -251,6 +251,7 @@
       }
 
       const rasterRoots = new Map();
+      const svgNative = new Map();
       const skewRoots = new Set();
       const spins = new Map();
       const order = new Map();
@@ -351,8 +352,13 @@
         const st = style(el);
         if (st.display === "none" || st.visibility === "hidden" || px(st.opacity) === 0) continue;
         const t = transformInfo(st.transform);
-        if (tag === "svg") markRaster(el, "svg");
-        else if (["canvas", "video", "iframe", "object", "embed"].includes(tag))
+        if (tag === "svg") {
+          // Схему из прямоугольников, кругов, линий и путей PowerPoint умеет
+          // держать родными фигурами. Не разобралось — уходит картинкой, как раньше.
+          const shapes = window.MPGA.svgShapes ? window.MPGA.svgShapes(win, el) : null;
+          if (shapes) svgNative.set(el, shapes);
+          else markRaster(el, "svg");
+        } else if (["canvas", "video", "iframe", "object", "embed"].includes(tag))
           markRaster(el, "embed");
         else if (el.hasAttribute("data-raster")) markRaster(el, "explicit");
         else if (!t.simple) {
@@ -530,6 +536,43 @@
             boxes.push(bar);
           }
         }
+      };
+
+      // Фигура из SVG ложится в тот же список, что и блоки вёрстки: разница
+      // только в том, откуда взялась геометрия.
+      const pushSvgShape = (el, shape, fade) => {
+        const fill = shape.fill ? hex(shape.fill) : null;
+        const stroke = shape.stroke ? hex(shape.stroke) : null;
+        if (!fill && !stroke) return;
+        const dim = shape.kind === "path" ? window.MPGA.svgNormalize(shape) : shape;
+        const box = {
+          seq: seqOf(el),
+          anim: animOf(el),
+          x: (shape.kind === "line" ? Math.min(shape.from[0], shape.to[0]) : dim.x) - ox,
+          y: (shape.kind === "line" ? Math.min(shape.from[1], shape.to[1]) : dim.y) - oy,
+          w: shape.kind === "line" ? Math.abs(shape.to[0] - shape.from[0]) : dim.w,
+          h: shape.kind === "line" ? Math.abs(shape.to[1] - shape.from[1]) : dim.h,
+          fill: fill ? fill.hex : null,
+          alpha: (fill ? fill.alpha * shape.fillAlpha : 1) * shape.opacity * fade,
+          radius: shape.kind === "ellipse" ? -1 : shape.radius || 0,
+        };
+        if (shape.kind === "line") {
+          box.kind = "line";
+          box.flip = (shape.to[0] - shape.from[0]) * (shape.to[1] - shape.from[1]) < 0;
+          box.fill = null;
+        } else if (shape.kind === "path") {
+          box.kind = "path";
+          box.path = dim.path;
+        }
+        if (stroke) {
+          box.stroke = stroke.hex;
+          box.strokeW = Math.max(0.4, shape.strokeW);
+          box.strokeAlpha = stroke.alpha * shape.strokeAlpha * shape.opacity * fade;
+          if (shape.dash) box.dash = shape.dash;
+          if (shape.cap) box.cap = shape.cap;
+          if (shape.join) box.join = shape.join;
+        }
+        boxes.push(applySpin(box, el));
       };
 
       // outline рисуется поверх рамки и не занимает места в раскладке —
@@ -827,6 +870,13 @@
         const r = el.getBoundingClientRect();
         if (r.width < 1 || r.height < 1) continue;
         const fade = fadeOf(el);
+
+        if (svgNative.has(el)) {
+          for (const shape of svgNative.get(el)) pushSvgShape(el, shape, fade);
+          if (el.querySelector("text")) collectSvgText(el, r);
+          for (const node of el.querySelectorAll("*")) skip.add(node);
+          continue;
+        }
 
         if (rasterRoots.has(el)) {
           const kind = rasterRoots.get(el);

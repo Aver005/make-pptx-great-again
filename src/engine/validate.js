@@ -103,6 +103,9 @@
         let under = slide.background || "FFFFFF";
         let covered = false;
         for (const box of slide.boxes) {
+          // У линии и произвольного пути рамка — не форма: судить по ней,
+          // что лежит под текстом, нельзя.
+          if (box.path || box.kind === "line") continue;
           if (box.grad || !box.fill || (box.alpha != null && box.alpha < 0.9)) continue;
           if (cx < box.x || cx > box.x + box.w || cy < box.y || cy > box.y + box.h) continue;
           under = box.fill;

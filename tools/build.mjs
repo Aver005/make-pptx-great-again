@@ -14,6 +14,7 @@ const ENGINE = [
   "src/engine/icons.js",
   "src/vendor/pptxgen.bundle.js",
   "src/engine/normalize.js",
+  "src/engine/svg.js",
   "src/engine/extract.js",
   "src/engine/raster.js",
   "src/engine/validate.js",

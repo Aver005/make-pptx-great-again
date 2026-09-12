@@ -107,8 +107,31 @@
             if (box.strokeAlpha != null && box.strokeAlpha < 1)
               opts.line.transparency = Math.round((1 - box.strokeAlpha) * 100);
           }
+          if (box.flip) opts.flipV = true;
           if (box.rot) opts.rotate = box.rot;
           if (box.shadow) opts.shadow = shadowOpts(box.shadow);
+
+          if (box.path) {
+            if (!opts.objectName) opts.objectName = objName("path", si, marked++);
+            patches.push({
+              slide: si,
+              name: opts.objectName,
+              path: box.path,
+              cap: box.cap,
+              join: box.join,
+              anim: box.anim,
+            });
+            s.addShape("rect", opts);
+            continue;
+          }
+          if (box.kind === "line") {
+            if (box.cap || box.join) {
+              if (!opts.objectName) opts.objectName = objName("line", si, marked++);
+              patches.push({ slide: si, name: opts.objectName, cap: box.cap, join: box.join });
+            }
+            s.addShape("line", opts);
+            continue;
+          }
 
           if (box.clip || box.corners) {
             if (!opts.objectName) opts.objectName = objName("clip", si, marked++);

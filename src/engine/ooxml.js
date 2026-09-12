@@ -99,6 +99,51 @@
     return xml.slice(0, start) + head + xml.slice(end);
   }
 
+  // Произвольный путь: тот же custGeom, только с кривыми и несколькими
+  // подпутями — так выглядит любая схема и любая иконка.
+  function pathGeomXml(subs) {
+    const pt = ([x, y]) => `<a:pt x="${pct(x)}" y="${pct(y)}"/>`;
+    const paths = subs
+      .map((sub) => {
+        const body =
+          `<a:moveTo>${pt(sub.start)}</a:moveTo>` +
+          sub.segs
+            .map((seg) =>
+              seg.type === "L"
+                ? `<a:lnTo>${pt(seg.to)}</a:lnTo>`
+                : `<a:cubicBezTo>${pt(seg.c1)}${pt(seg.c2)}${pt(seg.to)}</a:cubicBezTo>`,
+            )
+            .join("") +
+          (sub.closed ? "<a:close/>" : "");
+        return `<a:path w="100000" h="100000">${body}</a:path>`;
+      })
+      .join("");
+    return (
+      "<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>" +
+      '<a:rect l="0" t="0" r="r" b="b"/>' +
+      `<a:pathLst>${paths}</a:pathLst></a:custGeom>`
+    );
+  }
+
+  // Скруглённые концы и стыки линий библиотека не выставляет, а без них
+  // иконки выглядят обрубленными.
+  function retypeLine(xml, name, cap, join) {
+    const at = xml.indexOf(`name="${name}"`);
+    if (at < 0) return xml;
+    const start = xml.indexOf("<a:ln ", at);
+    if (start < 0) return xml;
+    const end = xml.indexOf(">", start);
+    if (end < 0) return xml;
+    let head = xml.slice(start, end);
+    if (cap && !head.includes(" cap=")) head += ` cap="${cap}"`;
+    let tail = xml.slice(end);
+    if (join === "rnd" && !tail.startsWith("><a:round/>")) {
+      const close = tail.indexOf("</a:ln>");
+      if (close > 0) tail = tail.slice(0, close) + "<a:round/>" + tail.slice(close);
+    }
+    return xml.slice(0, start) + head + tail;
+  }
+
   const TRANSITION = {
     fade: "<p:fade/>",
     cut: "<p:cut/>",
@@ -250,10 +295,12 @@
         for (const patch of patches) {
           if (patch.slide !== slide.index) continue;
           if (patch.grad) xml = paintGradient(xml, patch.name, patch.grad);
-          if (patch.clip) xml = reshape(xml, patch.name, custGeomXml(patch.clip));
+          if (patch.path) xml = reshape(xml, patch.name, pathGeomXml(patch.path));
+          else if (patch.clip) xml = reshape(xml, patch.name, custGeomXml(patch.clip));
           else if (patch.corners)
             xml = reshape(xml, patch.name, cornerGeomXml(patch.corners, patch.size));
           if (patch.body) xml = retypeBody(xml, patch.name, patch.body);
+          if (patch.cap || patch.join) xml = retypeLine(xml, patch.name, patch.cap, patch.join);
         }
 
         const steps = [];
