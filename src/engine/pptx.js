@@ -12,6 +12,14 @@
 
   const VALIGN = { top: "top", middle: "middle", bottom: "bottom", baseline: "middle" };
 
+  const UNDERLINE = {
+    solid: "sng",
+    double: "dbl",
+    dotted: "dotted",
+    dashed: "dash",
+    wavy: "wavy",
+  };
+
   // Эффектов, которых нет в API PptxGenJS (градиент, анимация, переход),
   // добьёмся правкой XML уже собранного файла — фигуре достаточно дать имя.
   const objName = (kind, si, n) => `mpga-${kind}-${si}-${n}`;
@@ -102,9 +110,16 @@
           if (box.rot) opts.rotate = box.rot;
           if (box.shadow) opts.shadow = shadowOpts(box.shadow);
 
-          if (box.clip) {
+          if (box.clip || box.corners) {
             if (!opts.objectName) opts.objectName = objName("clip", si, marked++);
-            patches.push({ slide: si, name: opts.objectName, clip: box.clip, anim: box.anim });
+            patches.push({
+              slide: si,
+              name: opts.objectName,
+              clip: box.clip,
+              corners: box.corners ? box.corners.map((v) => v * ir.epx) : null,
+              size: { w: box.w * ir.epx, h: box.h * ir.epx },
+              anim: box.anim,
+            });
           } else if (box.anim && !opts.objectName) {
             opts.objectName = objName("anim", si, marked++);
             patches.push({ slide: si, name: opts.objectName, anim: box.anim });
@@ -132,6 +147,10 @@
           if (image.anim) {
             opts.objectName = objName("anim", si, marked++);
             patches.push({ slide: si, name: opts.objectName, anim: image.anim });
+          }
+          if (image.alt) opts.altText = image.alt;
+          if (image.fit === "cover" || image.fit === "contain") {
+            opts.sizing = { type: image.fit, w: opts.w, h: opts.h };
           }
           if (image.data) s.addImage({ data: image.data, ...opts });
           else
@@ -186,14 +205,32 @@
           fontSize: +(size * 0.75).toFixed(1),
           color: first.color || "000000",
         };
+        if (text.bullet) {
+          opts.bullet = text.bullet.number
+            ? { type: "number", style: "arabicPeriod", startAt: text.bullet.number }
+            : { code: text.bullet.char.codePointAt(0).toString(16).toUpperCase().padStart(4, "0") };
+          opts.bullet.indent = +(text.bullet.indent * 0.75).toFixed(1);
+          opts.align = "left";
+        }
         if (text.rot) opts.rotate = text.rot;
-        if (text.anim) {
-          opts.objectName = objName("anim", si, marked++);
-          patches.push({ slide: si, name: opts.objectName, anim: text.anim });
+        if (text.anim || text.vert || text.columns) {
+          opts.objectName = objName("text", si, marked++);
+          patches.push({
+            slide: si,
+            name: opts.objectName,
+            anim: text.anim,
+            body: {
+              vert: text.vert,
+              numCol: text.columns ? text.columns.count : 0,
+              spcCol: text.columns ? Math.round(text.columns.gap * ir.epx) : 0,
+            },
+          });
         }
         if (text.shadow) opts.shadow = shadowOpts(text.shadow);
-        const ratio = text.lh / size;
-        if (ratio > 1.05 && ratio < 4) opts.lineSpacingMultiple = +ratio.toFixed(2);
+        // Межстрочный задаётся в пунктах, а не множителем: множитель PowerPoint
+        // считает от «одинарного» интервала шрифта (у Arial это ~1,2 кегля),
+        // и строки расходились тем сильнее, чем плотнее было в браузере.
+        if (text.lh > 1 && text.lines > 1) opts.lineSpacing = +(text.lh * 0.75).toFixed(1);
         s.addText(items, opts);
       }
     }
@@ -208,13 +245,16 @@
       fontSize: +(run.size * 0.75).toFixed(1),
       bold: !!run.bold,
       italic: !!run.italic,
-      underline: run.underline ? { style: "sng" } : undefined,
+      underline: run.underline
+        ? { style: UNDERLINE[run.underlineStyle] || "sng", color: run.underlineColor }
+        : undefined,
       strike: run.strike ? "sngStrike" : undefined,
       color: run.color || "000000",
-      charSpacing: run.spacing > 0.1 ? +(run.spacing * 0.75).toFixed(2) : undefined,
+      charSpacing: Math.abs(run.spacing) > 0.1 ? +(run.spacing * 0.75).toFixed(2) : undefined,
       breakLine: false,
     };
     if (run.fade != null && run.fade < 1) opts.transparency = Math.round((1 - run.fade) * 100);
+    if (run.link) opts.hyperlink = { url: run.link };
     return opts;
   }
 

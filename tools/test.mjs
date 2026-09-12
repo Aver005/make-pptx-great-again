@@ -32,6 +32,19 @@ const CASES = [
     // ни одной картинки там, где раньше уезжал целый слайд
     maxPictures: 4,
   },
+  {
+    file: "examples/deck-fine.html",
+    xml: [
+      ["slide1.xml", /<a:buChar char="&#x2022;"\/>/, "маркер списка"],
+      ["slide1.xml", /<a:buAutoNum type="arabicPeriod"/, "нумерация списка"],
+      ["slide1.xml", /hlinkClick/, "кликабельная ссылка"],
+      ["slide1.xml", /prstDash val="dash"/, "обводка через outline"],
+      ["slide2.xml", /<a:arcTo/, "разные радиусы по углам"],
+      ["slide3.xml", /numCol="2"/, "текст в две колонки"],
+      ["slide3.xml", /vert="vert"/, "вертикальная подпись"],
+    ],
+    maxPictures: 0,
+  },
 ];
 
 rmSync(OUT, { recursive: true, force: true });
@@ -138,7 +151,9 @@ for (const item of CASES) {
   });
   const pdf = join(dir, `${name}.pdf`);
   const pdfText = execFileSync("pdftotext", ["-layout", pdf, "-"]).toString();
-  const clean = pdfText.replace(/[­]/g, "");
+  // Перенос по дефису — обычная работа переносчика строк, а не разорванное
+  // слово: «writing-» на одной строке и «mode» на другой склеиваем обратно.
+  const clean = pdfText.replace(/[­]/g, "").replace(/-[ \t]*\r?\n[ \t]*/g, "-");
   const broken = [...new Set(data.words)].filter((word) => !clean.includes(word)).slice(0, 6);
   const brokenShare = broken.length / Math.max(1, new Set(data.words).size);
   if (brokenShare > 0.02) fail(name, `слова разорваны переносом: ${broken.join(", ")}`);

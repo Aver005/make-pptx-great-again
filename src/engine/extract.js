@@ -450,6 +450,7 @@
           return raw.includes("%") ? (Math.min(r.width, r.height) * value) / 100 : value;
         });
         let radius = Math.max(...corners);
+        const mixed = corners.some((v) => Math.abs(v - corners[0]) > 1) ? corners : null;
         // Круг — только когда блок и правда круглый. Капсула (широкая плашка со
         // скруглением во всю высоту) в PowerPoint это roundRect с полным радиусом,
         // а не эллипс: иначе таблетка становится яйцом.
@@ -492,6 +493,8 @@
         }
         if (shadow) box.shadow = { ...shadow, alpha: shadow.alpha * fade };
         if (clip) box.clip = clip;
+        else if (mixed && radius > 0.5)
+          box.corners = mixed.map((v) => Math.min(v, Math.min(r.width, r.height) / 2));
         if (geom.rot) box.rot = geom.rot;
         if (uniform) {
           box.stroke = sides[0].c.hex;
@@ -527,6 +530,30 @@
             boxes.push(bar);
           }
         }
+      };
+
+      // outline рисуется поверх рамки и не занимает места в раскладке —
+      // отдельной фигурой без заливки, отодвинутой на outline-offset.
+      const pushOutline = (el, st, geom, fade) => {
+        const width = px(st.outlineWidth);
+        const color = hex(st.outlineColor);
+        if (!(width > 0.4) || !color || st.outlineStyle === "none") return;
+        const gap = px(st.outlineOffset) + width / 2;
+        boxes.push({
+          seq: seqOf(el, 2),
+          anim: animOf(el),
+          x: geom.x - gap,
+          y: geom.y - gap,
+          w: geom.w + gap * 2,
+          h: geom.h + gap * 2,
+          fill: null,
+          alpha: 1,
+          radius: 0,
+          stroke: color.hex,
+          strokeW: width,
+          strokeAlpha: color.alpha * fade,
+          dash: DASH[st.outlineStyle] || "solid",
+        });
       };
 
       const pushPseudo = (el, r, which, fade, seq) => {
@@ -641,6 +668,8 @@
         bold: st.fontWeight === "bold" || (parseInt(st.fontWeight, 10) || 400) >= 600,
         italic: st.fontStyle === "italic" || st.fontStyle === "oblique",
         underline: st.textDecorationLine.includes("underline"),
+        underlineStyle: st.textDecorationStyle,
+        underlineColor: (hex(st.textDecorationColor) || {}).hex,
         strike: st.textDecorationLine.includes("line-through"),
         color: (hex(st.color) || { hex: "000000" }).hex,
         spacing: px(st.letterSpacing),
@@ -649,11 +678,19 @@
         collapse: !String(st.whiteSpace).startsWith("pre"),
       });
 
-      const makeRun = (text, st) => {
+      const linkOf = (node) => {
+        const anchor = node && node.closest ? node.closest("a[href]") : null;
+        if (!anchor || !slideEl.contains(anchor)) return null;
+        const href = anchor.getAttribute("href") || "";
+        return /^(https?:|mailto:)/i.test(href) ? href : null;
+      };
+
+      const makeRun = (text, st, node) => {
         const s = runStyle(null, st);
         let value = s.collapse ? text.replace(/\s+/g, " ") : text;
         value = applyTransform(value, s.transform);
-        return { text: value, ...s };
+        const link = linkOf(node);
+        return link ? { text: value, link, ...s } : { text: value, ...s };
       };
 
       const collectRuns = (el) => {
@@ -663,7 +700,7 @@
         for (const node of el.childNodes) {
           if (node.nodeType === 3) {
             if (!node.textContent.trim() && !runs.length) continue;
-            runs.push(makeRun(node.textContent, style(el)));
+            runs.push(makeRun(node.textContent, style(el), el));
             used.push(node);
             continue;
           }
@@ -681,7 +718,7 @@
           if (node.querySelector("div,p,section,ul,ol,li,table,h1,h2,h3,h4,h5,h6,svg,img"))
             continue;
           if (!node.textContent.trim()) continue;
-          runs.push(makeRun(node.textContent, nst));
+          runs.push(makeRun(node.textContent, nst, node));
           used.push(node);
           eaten.push(node, ...node.querySelectorAll("*"));
         }
@@ -689,9 +726,85 @@
         return { runs, eaten, used };
       };
 
+      // Маркер списка живёт в ::marker и в DOM его нет: в PowerPoint он станет
+      // родным маркером абзаца. Отступ до текста меряем по шрифту самого пункта,
+      // чтобы текст остался там же, где был.
+      const MARKERS = { disc: "•", circle: "◦", square: "▪", "disc-outside": "•" };
+      let ruler = null;
+      const textWidth = (value, font) => {
+        if (!ruler) ruler = doc.createElement("canvas").getContext("2d");
+        if (!ruler) return 0;
+        ruler.font = font;
+        return ruler.measureText(value).width;
+      };
+
+      const bulletOf = (el, st) => {
+        if (st.display !== "list-item") return null;
+        const kind = String(st.listStyleType || "");
+        if (!kind || kind === "none") return null;
+        const size = px(st.fontSize) || 16;
+        const font = `${size}px Arial, sans-serif`;
+        if (MARKERS[kind]) {
+          return {
+            char: MARKERS[kind],
+            indent: textWidth(MARKERS[kind], font) + size * 0.45,
+          };
+        }
+        if (kind === "decimal" || kind === "decimal-leading-zero") {
+          const list = el.parentElement;
+          const items = list ? [...list.children].filter((n) => n.tagName === el.tagName) : [el];
+          const start = parseInt(list && list.getAttribute("start"), 10) || 1;
+          const at = start + Math.max(0, items.indexOf(el));
+          return { number: at, indent: textWidth(`${at}.`, font) + size * 0.45 };
+        }
+        return null;
+      };
+
       const directText = (el) => {
         for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true;
         return false;
+      };
+
+      // overflow: hidden в браузере режет вылезшего ребёнка, в PowerPoint резать
+      // нечем — значит, подрезаем сами при замере. Скруглённые фигуры не трогаем:
+      // обрезанный круг прямоугольником стал бы приплюснутым яйцом.
+      const clipOf = (el) => {
+        let box = null;
+        for (let node = el.parentElement; node && node !== slideEl; node = node.parentElement) {
+          const st = style(node);
+          if (st.overflow === "visible" && st.overflowX === "visible" && st.overflowY === "visible")
+            continue;
+          const r = node.getBoundingClientRect();
+          const side = {
+            left: r.left - ox + px(st.borderLeftWidth),
+            top: r.top - oy + px(st.borderTopWidth),
+            right: r.right - ox - px(st.borderRightWidth),
+            bottom: r.bottom - oy - px(st.borderBottomWidth),
+          };
+          box = box
+            ? {
+                left: Math.max(box.left, side.left),
+                top: Math.max(box.top, side.top),
+                right: Math.min(box.right, side.right),
+                bottom: Math.min(box.bottom, side.bottom),
+              }
+            : side;
+        }
+        return box;
+      };
+
+      const clampBox = (box, bounds) => {
+        if (!bounds || box.rot || box.radius === -1 || box.radius > 0.5 || box.clip) return true;
+        const left = Math.max(box.x, bounds.left);
+        const top = Math.max(box.y, bounds.top);
+        const right = Math.min(box.x + box.w, bounds.right);
+        const bottom = Math.min(box.y + box.h, bounds.bottom);
+        if (right - left < 0.5 || bottom - top < 0.5) return false;
+        box.x = left;
+        box.y = top;
+        box.w = right - left;
+        box.h = bottom - top;
+        return true;
       };
 
       // Прозрачность копится по предкам: opacity на карточке гасит и её фон,
@@ -728,7 +841,14 @@
         if (el !== slideEl) pushBoxesFor(el, st, r, geom, fade);
         pushPseudo(el, r, "::before", fade, seqOf(el, 3));
         pushPseudo(el, r, "::after", fade, seqAfter(el));
-        for (let i = boxesBefore; i < boxes.length; i++) applySpin(boxes[i], el);
+        pushOutline(el, st, geom, fade);
+        const bounds = clipOf(el);
+        const kept = [];
+        for (let i = boxesBefore; i < boxes.length; i++) {
+          if (clampBox(boxes[i], bounds)) kept.push(applySpin(boxes[i], el));
+        }
+        boxes.length = boxesBefore;
+        boxes.push(...kept);
 
         if (tag === "table") {
           const table = tableOf(el, r, fade);
@@ -741,6 +861,7 @@
 
         if (tag === "img") {
           const src = el.getAttribute("src") || "";
+          const fit = st.objectFit && st.objectFit !== "fill" ? st.objectFit : null;
           images.push(
             applySpin(
               {
@@ -749,6 +870,8 @@
                 id: `img-${si}-${captureSeq++}`,
                 kind: "img",
                 src,
+                fit,
+                alt: (el.getAttribute("alt") || "").trim() || null,
                 x: r.left - ox,
                 y: r.top - oy,
                 w: r.width,
@@ -774,12 +897,21 @@
         const boxX = lines > 1 ? r.left + padL : ink.left;
         const boxW = lines > 1 ? Math.max(ink.width, r.width - padL - padR) : ink.width;
         const shadow = parseShadow(st.textShadow);
+        const mode = String(st.writingMode || "");
+        const vert = mode.startsWith("vertical-rl")
+          ? "vert"
+          : mode.startsWith("vertical-lr") || mode.startsWith("sideways-lr")
+            ? "vert270"
+            : null;
+        const columns = Math.min(16, parseInt(st.columnCount, 10) || 0);
+        const bullet = bulletOf(el, st);
+        const shift = bullet ? bullet.indent : 0;
         const text = {
           seq: seqOf(el),
           anim: animOf(el),
-          x: boxX - ox,
+          x: boxX - ox - shift,
           y: ink.top - oy,
-          w: boxW,
+          w: boxW + shift,
           h: ink.height,
           align: st.textAlign,
           lh,
@@ -788,6 +920,9 @@
         };
         if (fade < 1) for (const run of text.runs) run.fade = fade;
         if (shadow) text.shadow = shadow;
+        if (bullet) text.bullet = bullet;
+        if (vert) text.vert = vert;
+        if (columns > 1) text.columns = { count: columns, gap: px(st.columnGap) || 0 };
         texts.push(applySpin(text, el));
       }
 

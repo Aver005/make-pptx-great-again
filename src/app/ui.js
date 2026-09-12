@@ -249,7 +249,8 @@
           if (box.grad) css += `background-image:${gradCss(box.grad)};`;
           if (box.stroke)
             css += `border:${box.strokeW}px ${box.dash === "dash" ? "dashed" : box.dash === "sysDot" ? "dotted" : "solid"} #${box.stroke};`;
-          if (box.radius === -1) css += "border-radius:50%;";
+          if (box.corners) css += `border-radius:${box.corners.map((v) => `${v}px`).join(" ")};`;
+          else if (box.radius === -1) css += "border-radius:50%;";
           else if (box.radius > 0) css += `border-radius:${box.radius}px;`;
           if (box.rot) css += `transform:rotate(${box.rot}deg);`;
           if (box.shadow)
@@ -290,8 +291,19 @@
                 : "flex-start"
           };`;
         if (text.rot) node.style.transform = `rotate(${text.rot}deg)`;
+        if (text.vert) node.style.writingMode = "vertical-rl";
+        if (text.columns) {
+          node.style.columnCount = text.columns.count;
+          node.style.columnGap = `${text.columns.gap}px`;
+        }
+        const marker = text.bullet
+          ? `<span style="display:inline-block;width:${text.bullet.indent}px">${
+              text.bullet.number ? `${text.bullet.number}.` : esc(text.bullet.char)
+            }</span>`
+          : "";
         node.innerHTML =
           "<span>" +
+          marker +
           text.runs
             .map((run) =>
               run.br

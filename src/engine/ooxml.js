@@ -55,6 +55,50 @@
     );
   }
 
+  // Скругление разными радиусами по углам: в готовых фигурах PowerPoint такого
+  // нет, зато есть своя геометрия с дугами. Путь считается в EMU самой фигуры,
+  // иначе круглые углы стали бы овальными на неквадратном блоке.
+  function cornerGeomXml(corners, size) {
+    const w = Math.max(1, Math.round(size.w));
+    const h = Math.max(1, Math.round(size.h));
+    const [tl, tr, br, bl] = corners.map((v) => Math.max(0, Math.round(v)));
+    const pt = (x, y) => `<a:pt x="${Math.round(x)}" y="${Math.round(y)}"/>`;
+    const arc = (radius, start) =>
+      radius > 0
+        ? `<a:arcTo wR="${radius}" hR="${radius}" stAng="${start * 60000}" swAng="${90 * 60000}"/>`
+        : "";
+    const body =
+      `<a:moveTo>${pt(tl, 0)}</a:moveTo>` +
+      `<a:lnTo>${pt(w - tr, 0)}</a:lnTo>${arc(tr, 270)}` +
+      `<a:lnTo>${pt(w, h - br)}</a:lnTo>${arc(br, 0)}` +
+      `<a:lnTo>${pt(bl, h)}</a:lnTo>${arc(bl, 90)}` +
+      `<a:lnTo>${pt(0, tl)}</a:lnTo>${arc(tl, 180)}` +
+      "<a:close/>";
+    return (
+      "<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>" +
+      '<a:rect l="0" t="0" r="r" b="b"/>' +
+      `<a:pathLst><a:path w="${w}" h="${h}">${body}</a:path></a:pathLst></a:custGeom>`
+    );
+  }
+
+  // Вертикальный текст и колонки живут в атрибутах bodyPr — библиотека их не
+  // выставляет, а формат понимает.
+  function retypeBody(xml, name, body) {
+    const at = xml.indexOf(`name="${name}"`);
+    if (at < 0) return xml;
+    const start = xml.indexOf("<a:bodyPr", at);
+    if (start < 0) return xml;
+    const end = xml.indexOf(">", start);
+    if (end < 0) return xml;
+    let head = xml.slice(start, end);
+    if (body.vert && !head.includes(" vert=")) head += ` vert="${body.vert}"`;
+    if (body.numCol > 1 && !head.includes(" numCol=")) {
+      head += ` numCol="${body.numCol}"`;
+      if (body.spcCol > 0) head += ` spcCol="${body.spcCol}"`;
+    }
+    return xml.slice(0, start) + head + xml.slice(end);
+  }
+
   const TRANSITION = {
     fade: "<p:fade/>",
     cut: "<p:cut/>",
@@ -170,13 +214,13 @@
     return id ? id[1] : null;
   }
 
-  function reshape(xml, name, points) {
+  function reshape(xml, name, geom) {
     const at = xml.indexOf(`name="${name}"`);
     if (at < 0) return xml;
     const start = xml.indexOf("<a:prstGeom", at);
     const tail = xml.indexOf("</a:prstGeom>", start);
     if (start < 0 || tail < 0) return xml;
-    return xml.slice(0, start) + custGeomXml(points) + xml.slice(tail + "</a:prstGeom>".length);
+    return xml.slice(0, start) + geom + xml.slice(tail + "</a:prstGeom>".length);
   }
 
   function paintGradient(xml, name, grad) {
@@ -206,7 +250,10 @@
         for (const patch of patches) {
           if (patch.slide !== slide.index) continue;
           if (patch.grad) xml = paintGradient(xml, patch.name, patch.grad);
-          if (patch.clip) xml = reshape(xml, patch.name, patch.clip);
+          if (patch.clip) xml = reshape(xml, patch.name, custGeomXml(patch.clip));
+          else if (patch.corners)
+            xml = reshape(xml, patch.name, cornerGeomXml(patch.corners, patch.size));
+          if (patch.body) xml = retypeBody(xml, patch.name, patch.body);
         }
 
         const steps = [];
