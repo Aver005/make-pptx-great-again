@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, readdirSync, statSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 import puppeteer from "puppeteer-core";
 
@@ -98,6 +98,17 @@ try {
 log("вставленный код: " + (await page.$eval("#summary", (el) => el.textContent)));
 
 console.log("  замечания в интерфейсе:", notes.join(" | ") || "нет");
+
+// Офлайн-копия не должна содержать даже возможности что-то отправить.
+const offlineSource = readFileSync(resolve("dist/MPGA.html"), "utf8");
+const forbidden = ["/api/report", "report-agree", "MPGA_REPORT_UI =", "mpga-client"].filter(
+  (needle) => offlineSource.includes(needle),
+);
+console.log(
+  forbidden.length
+    ? `  В ОФЛАЙН-КОПИИ ОСТАЛОСЬ: ${forbidden.join(", ")}`
+    : "  в офлайн-копии нет кода отправки файлов",
+);
 console.log(
   `  сетевых запросов наружу: ${blocked.length}${blocked.length ? " — " + blocked.slice(0, 3).join(", ") : " (ни одного)"}`,
 );
@@ -106,4 +117,4 @@ console.log(
 );
 
 await browser.close();
-process.exit(blocked.length || !readdirSync(downloads).length ? 1 : 0);
+process.exit(blocked.length || forbidden.length || !readdirSync(downloads).length ? 1 : 0);

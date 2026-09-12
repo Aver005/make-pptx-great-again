@@ -1,6 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import pkg from "../package.json";
+import { clientAddress, handleReport, handleRevoke, prune } from "./reports";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -80,15 +81,31 @@ function send(request: Request, asset: Asset, extra: Record<string, string> = {}
   return new Response(asset.body, { headers });
 }
 
+const REPORTS = process.env.REPORTS_ENABLED !== "0";
+
 const server = Bun.serve({
   port: PORT,
   hostname: HOST,
-  fetch(request) {
+  fetch(request, connection) {
+    const { pathname } = new URL(request.url);
+
+    if (pathname === "/api/report" || pathname.startsWith("/api/report/")) {
+      if (!REPORTS) return new Response("приём файлов выключен", { status: 404 });
+      if (pathname === "/api/report" && request.method === "POST") {
+        return handleReport(
+          request,
+          clientAddress(request, connection.requestIP(request)?.address ?? "?"),
+        );
+      }
+      if (pathname !== "/api/report" && request.method === "DELETE") {
+        return handleRevoke(pathname.slice("/api/report/".length), request);
+      }
+      return new Response("только POST или DELETE", { status: 405 });
+    }
+
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response("только GET", { status: 405 });
     }
-
-    const { pathname } = new URL(request.url);
 
     if (pathname === "/download") {
       return send(request, offline, {
@@ -113,6 +130,13 @@ const server = Bun.serve({
     });
   },
 });
+
+if (REPORTS) {
+  // Уборка идёт при старте и раз в сутки: контейнер живёт долго, а обещание
+  // «хранится до двух недель» должен кто-то исполнять.
+  prune().catch(() => {});
+  setInterval(() => prune().catch(() => {}), 24 * 60 * 60 * 1000).unref();
+}
 
 console.log(
   `MPGA ${pkg.version} на http://${server.hostname}:${server.port} · ` +

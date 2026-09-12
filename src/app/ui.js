@@ -333,12 +333,24 @@
 
   async function run(source, label, isDemo) {
     $("result").classList.remove("on");
+    // Приём файлов живёт отдельным файлом и попадает только в ту сборку,
+    // которую отдаёт сайт: офлайн-копия про него не знает вовсе.
+    if (window.MPGA_REPORT_UI) window.MPGA_REPORT_UI.hide();
     setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ""}…`, true);
     await new Promise((done) => setTimeout(done, 30));
     try {
       await ensureEngine();
       const { ir, warnings } = await window.MPGA.convert(source);
-      current = { ir, warnings };
+      current = {
+        ir,
+        warnings,
+        stats: {
+          slides: ir.slides.length,
+          slideW: Math.round(ir.slideW),
+          slideH: Math.round(ir.slideH),
+          codes: warnings.filter((w) => w.level !== "info").map((w) => w.code),
+        },
+      };
       renderPreview(ir);
       renderNotes(warnings);
       renderSummary(ir);
@@ -349,6 +361,9 @@
       for (const id of ["step-1", "step-2"]) $(id).classList.add("spent");
       $("result").classList.add("on");
       $("result").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+      if (window.MPGA_REPORT_UI && !isDemo && warnings.some((w) => w.level !== "info")) {
+        window.MPGA_REPORT_UI.offer(source, current.stats);
+      }
     } catch (err) {
       setStatus(
         `<b>Не получилось.</b> ${esc(err.friendly ? err.message : "Это не похоже на презентацию: " + err.message)}` +
@@ -356,6 +371,9 @@
         false,
         true,
       );
+      if (window.MPGA_REPORT_UI && !isDemo) {
+        window.MPGA_REPORT_UI.offer(source, { failed: String(err.message).slice(0, 200) });
+      }
     }
   }
 

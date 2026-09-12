@@ -81,19 +81,35 @@ for (const name of [...uiNames].sort()) {
   uiIcons[name] = ICONS[name];
 }
 const appCode = `window.MPGA_UI_ICONS = ${JSON.stringify(uiIcons)};\n${data}\n${uiSource}`;
+const siteAppCode = `${appCode}\n${read("src/app/report.js")}`;
 const styles = read("src/app/styles.css");
 const template = read("src/app/index.html");
 const meta = read("src/app/meta.html")
   .replaceAll("{{SITE}}", SITE)
   .replaceAll("{{VERSION}}", VERSION);
 
-function page({ head, scripts, canonical }) {
+const CSP_BASE =
+  "default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; " +
+  "script-src 'self' 'unsafe-inline'; font-src 'self' data:; form-action 'none'; " +
+  "frame-src 'self' data: blob:; base-uri 'none'";
+
+function page({ head, scripts, canonical, report, connect, extraCss }) {
   return template
     .replaceAll("{{SITE}}", SITE)
     .replaceAll("{{VERSION}}", VERSION)
+    .replace(
+      "<!--CSP-->",
+      () =>
+        `<meta http-equiv="Content-Security-Policy" content="${CSP_BASE}; connect-src ${connect}">`,
+    )
     .replace("<!--META-->", () => meta.replace("{{CANONICAL}}", canonical))
     .replace("<!--HEAD-->", () => head)
-    .replace("<!--STYLES-->", () => `<style>\n${styles}\n</style>`)
+    .replace("<!--REPORT-->", () => report)
+    .replace("<!--PRIVACY--> ", () => "")
+    .replace("<!--PRIVACY-->", () =>
+      report ? " Отправить файл мне можно только вручную — галочкой под замечаниями." : "",
+    )
+    .replace("<!--STYLES-->", () => `<style>\n${styles}\n${extraCss ?? ""}\n</style>`)
     .replace("<!--SCRIPTS-->", () => scripts);
 }
 
@@ -124,25 +140,47 @@ function guard(html, what) {
   }
 }
 
+function assertOffline(html) {
+  for (const [rule, why] of [
+    [/\/api\/report/, "в офлайн-копии остался адрес приёма файлов"],
+    [/report-agree/, "в офлайн-копии осталась форма отправки"],
+    [/MPGA_REPORT_UI\s*=/, "в офлайн-копии остался код отправки"],
+    [/MPGA_REPORT\s*=/, "в офлайн-копии осталась настройка приёма"],
+    [/connect-src 'self'/, "офлайн-копии разрешена сеть"],
+    [/id="report"/, "в офлайн-копии осталась форма отправки"],
+  ]) {
+    if (rule.test(html)) {
+      console.error(`сборка остановлена: ${why}`);
+      process.exit(1);
+    }
+  }
+}
+
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist/site", { recursive: true });
 
 // --- один файл: всё внутри, работает с диска и без сети ---
+// Офлайн-копия не умеет отправлять ничего и никуда: кода приёма в ней нет, а
+// `connect-src 'none'` запрещает браузеру любые запросы. Это не обещание в
+// тексте, а свойство файла, которое видно в его исходнике.
 const offline = page({
   head: "",
   canonical: `${SITE}/`,
+  report: "",
+  connect: "'none'",
   scripts: `<script>\n${safe(engineCode)}\n</script>\n<script>\n${safe(appCode)}\n</script>`,
 });
 guard(offline, "MPGA.html");
+assertOffline(offline);
 writeFileSync("dist/MPGA.html", offline);
 const offlineHash = createHash("sha256").update(offline).digest("hex");
 writeFileSync("dist/MPGA.html.sha256", `${offlineHash}  MPGA.html\n`);
 
 // --- сайт: страница лёгкая, движок отдельным файлом с вечным кешем ---
 const engineName = `engine-${hash8(engineCode)}.js`;
-const appName = `app-${hash8(appCode)}.js`;
+const appName = `app-${hash8(siteAppCode)}.js`;
 writeFileSync(join("dist/site", engineName), engineCode);
-writeFileSync(join("dist/site", appName), appCode);
+writeFileSync(join("dist/site", appName), siteAppCode);
 
 // Движок грузится не сразу: 933 КБ скриптов нужны только тому, кто реально
 // собирает презентацию, а большинство пришедших из поиска просто читают
@@ -150,9 +188,14 @@ writeFileSync(join("dist/site", appName), appCode);
 // конвертации и тихо, в простое, догружает его для работы без сети.
 const online = page({
   head: "",
+  report: read("src/app/report.html"),
+  extraCss: read("src/app/report.css"),
+  connect: "'self'",
   canonical: `${SITE}/`,
   scripts:
-    `<script>window.MPGA_ENGINE_URL = "/${engineName}";</script>\n` +
+    `<script>window.MPGA_ENGINE_URL = "/${engineName}";` +
+    `window.MPGA_REPORT = ${JSON.stringify({ url: "/api/report", maxBytes: 5 * 1024 * 1024, keepDays: 14 })};` +
+    `</script>\n` +
     `<script src="/${appName}" defer></script>`,
 });
 guard(online, "site/index.html");
@@ -162,6 +205,10 @@ copyFileSync("assets/og.png", "dist/site/og.png");
 
 const article = read("src/app/guide.html")
   .replaceAll("{{SITE}}", SITE)
+  .replace(
+    "<!--CSP-->",
+    () => `<meta http-equiv="Content-Security-Policy" content="${CSP_BASE}; connect-src 'none'">`,
+  )
   .replace("<!--META-->", () => meta.replace("{{CANONICAL}}", `${SITE}/guide`))
   .replace("<!--STYLES-->", () => `<style>\n${styles}\n${read("src/app/guide.css")}\n</style>`);
 guard(article, "site/guide.html");

@@ -11,6 +11,15 @@ services:
     environment:
       PORT: "3000"
       HOST: "0.0.0.0"
+      REPORTS_DIR: /var/lib/mpga/reports
+      REPORTS_ENABLED: "${REPORTS_ENABLED:-1}"
+      REPORTS_ORIGIN: "${REPORTS_ORIGIN:-}"
+    volumes:
+      # Присланные людьми презентации. Каталог на хосте принадлежит uid 1000 —
+      # тому же, под которым работает процесс в контейнере (пользователь bun),
+      # иначе запись падала бы на правах. Том нужен и затем, чтобы счётчик
+      # суточных лимитов переживал пересборку контейнера.
+      - /media/mpga/reports:/var/lib/mpga/reports
     read_only: true
     tmpfs:
       - /tmp
