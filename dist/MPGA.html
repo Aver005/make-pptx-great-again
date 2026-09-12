@@ -5,66 +5,85 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'none'; form-action 'none'; frame-src 'self' data: blob:; base-uri 'none'">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%230c0a0a"/><rect x="6" y="8" width="20" height="16" rx="2.5" fill="%23f2f1ef"/><rect x="9" y="11" width="9" height="2.4" rx="1.2" fill="%23ff4d2e"/><rect x="9" y="16" width="14" height="1.8" rx=".9" fill="%23c9c7c3"/><rect x="9" y="19.5" width="11" height="1.8" rx=".9" fill="%23d9d7d3"/></svg>">
 <title>MPGA — презентация из нейросети в PowerPoint</title>
 <style>
 :root {
   --bg: #0c0a0a;
-  --panel: rgba(255, 255, 255, .04);
-  --panel-2: rgba(255, 255, 255, .075);
-  --line: rgba(255, 255, 255, .1);
-  --line-mid: rgba(255, 255, 255, .14);
-  --line-strong: rgba(255, 255, 255, .22);
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-2: rgba(255, 255, 255, 0.075);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-mid: rgba(255, 255, 255, 0.14);
+  --line-strong: rgba(255, 255, 255, 0.22);
   --ink: #f2f1ef;
   --muted: #b3afab;
   --faint: #918c86;
   --accent: #ff4d2e;
   --accent-deep: #cf3418;
-  --accent-soft: rgba(255, 77, 46, .13);
+  --accent-soft: rgba(255, 77, 46, 0.13);
   --indigo: #8c9bff;
   --ok: #37d399;
-  --ok-soft: rgba(55, 211, 153, .12);
+  --ok-soft: rgba(55, 211, 153, 0.12);
   --warn: #f5b63f;
-  --warn-soft: rgba(245, 182, 63, .12);
+  --warn-soft: rgba(245, 182, 63, 0.12);
   --danger: #ff6a55;
-  --danger-soft: rgba(255, 106, 85, .12);
+  --danger-soft: rgba(255, 106, 85, 0.12);
 
   --r-xs: 6px;
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
-  --shadow: 0 18px 50px rgba(0, 0, 0, .45);
-  --ease: cubic-bezier(.22, 1, .36, 1);
-  --t-fast: .14s;
-  --t: .22s;
-  --t-slow: .36s;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 0.14s;
+  --t: 0.22s;
+  --t-slow: 0.36s;
   --tile-x: 96px;
   --tile-y: 54px;
 }
 
-* { box-sizing: border-box }
-html { -webkit-text-size-adjust: 100% }
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
-  font: 16px/1.55 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font:
+    16px/1.55 -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 /* ---------- задний план ---------- */
 
-.backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden }
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
 
 .grid-plane {
   position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, .032) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, .032) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
   background-size: var(--tile-x) var(--tile-y);
   -webkit-mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
   mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
@@ -72,86 +91,181 @@ body {
 }
 
 @keyframes drift {
-  from { transform: translate3d(0, 0, 0) }
-  to { transform: translate3d(var(--tile-x), var(--tile-y), 0) }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--tile-x), var(--tile-y), 0);
+  }
 }
 
 .aura {
-  position: absolute; border-radius: 50%;
-  width: 860px; height: 860px; top: -320px; left: -200px;
-  background: radial-gradient(circle, rgba(255, 77, 46, .17), rgba(255, 77, 46, 0) 62%);
+  position: absolute;
+  border-radius: 50%;
+  width: 860px;
+  height: 860px;
+  top: -320px;
+  left: -200px;
+  background: radial-gradient(circle, rgba(255, 77, 46, 0.17), rgba(255, 77, 46, 0) 62%);
   animation: float-a 34s ease-in-out infinite alternate;
   will-change: transform;
 }
 
 @keyframes float-a {
-  from { transform: translate3d(0, 0, 0) scale(1) }
-  to { transform: translate3d(140px, 90px, 0) scale(1.12) }
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(140px, 90px, 0) scale(1.12);
+  }
 }
 
 .vignette {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(100% 70% at 50% 0%, rgba(12, 10, 10, 0) 40%, rgba(12, 10, 10, .8) 100%),
-    linear-gradient(180deg, rgba(12, 10, 10, .28), rgba(12, 10, 10, .84));
+    radial-gradient(100% 70% at 50% 0%, rgba(12, 10, 10, 0) 40%, rgba(12, 10, 10, 0.8) 100%),
+    linear-gradient(180deg, rgba(12, 10, 10, 0.28), rgba(12, 10, 10, 0.84));
 }
 
 /* ---------- каркас ---------- */
 
-.wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 44px 24px 72px }
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 44px 24px 72px;
+}
 
-.head { margin-bottom: 30px }
-.brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 24px }
+.head {
+  margin-bottom: 30px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
 
 .logo {
-  font-size: 25px; font-weight: 700; letter-spacing: -.035em;
-  display: inline-flex; align-items: baseline;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  display: inline-flex;
+  align-items: baseline;
 }
 .logo .dot {
-  width: 9px; height: 9px; margin-left: 4px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 18px rgba(255, 77, 46, .7);
+  width: 9px;
+  height: 9px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 18px rgba(255, 77, 46, 0.7);
 }
 
 .pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 999px;
-  border: 1px solid var(--line-mid); background: var(--panel);
-  font-size: 13px; color: var(--muted); white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
 }
-.pill[hidden] { display: none }
-.pill svg { width: 14px; height: 14px; stroke-width: 2.3 }
-.pill-ok { color: #9fe7c8; border-color: rgba(55, 211, 153, .3); background: var(--ok-soft) }
-.pill-ok svg { color: var(--ok) }
-.brand .pill { margin-left: auto }
+.pill[hidden] {
+  display: none;
+}
+.pill svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.3;
+}
+.pill-ok {
+  color: #9fe7c8;
+  border-color: rgba(55, 211, 153, 0.3);
+  background: var(--ok-soft);
+}
+.pill-ok svg {
+  color: var(--ok);
+}
+.brand .pill {
+  margin-left: auto;
+}
 
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 30px; align-items: center }
-.hero-text { display: grid; gap: 14px }
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: center;
+}
+.hero-text {
+  display: grid;
+  gap: 14px;
+}
 
 h1 {
-  margin: 0; font-size: clamp(28px, 4.2vw, 38px); line-height: 1.12;
-  letter-spacing: -.028em; font-weight: 700;
+  margin: 0;
+  font-size: clamp(28px, 4.2vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  font-weight: 700;
 }
-h1 em { font-style: normal; color: var(--accent) }
-.tagline { margin: 0; max-width: 60ch; color: var(--muted); font-size: 16px; line-height: 1.55 }
+h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+.tagline {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
 
 code {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: .84em;
-  padding: 2px 6px; border-radius: var(--r-xs);
-  background: var(--panel-2); border: 1px solid var(--line); color: #dedad4;
+  font-size: 0.84em;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: #dedad4;
 }
 
 /* ---------- стопка слайдов в шапке ---------- */
 
-.deck-strip { position: relative; width: 232px; height: 136px }
+.deck-strip {
+  position: relative;
+  width: 232px;
+  height: 136px;
+}
 .deck-strip .mini {
-  position: absolute; top: 50%; left: 50%; width: 150px; height: 84px; border-radius: 7px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 84px;
+  border-radius: 7px;
   background: linear-gradient(160deg, #fbfbfa, #e7e6e3);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 14px 30px rgba(0, 0, 0, .45);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 14px 30px rgba(0, 0, 0, 0.45);
   animation: hover-deck 9s ease-in-out infinite alternate;
 }
-.deck-strip .m1 { transform: translate(-50%, -50%) rotate(-8deg) translate(-26px, 10px); opacity: .5 }
-.deck-strip .m2 { transform: translate(-50%, -50%) rotate(-3deg) translate(-8px, 2px); opacity: .75; animation-delay: -3s }
+.deck-strip .m1 {
+  transform: translate(-50%, -50%) rotate(-8deg) translate(-26px, 10px);
+  opacity: 0.5;
+}
+.deck-strip .m2 {
+  transform: translate(-50%, -50%) rotate(-3deg) translate(-8px, 2px);
+  opacity: 0.75;
+  animation-delay: -3s;
+}
 .deck-strip .m3 {
   transform: translate(-50%, -50%) rotate(3deg) translate(14px, -8px);
   animation-delay: -6s;
@@ -165,328 +279,880 @@ code {
     #fff;
 }
 @keyframes hover-deck {
-  from { translate: 0 0 }
-  to { translate: 0 -8px }
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -8px;
+  }
 }
 
-.on-touch { display: none }
+.on-touch {
+  display: none;
+}
 
 /* ---------- секции ---------- */
 
 .step {
   position: relative;
-  border: 1px solid var(--line-mid); border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, .035);
-  padding: 22px 30px 22px 72px; margin-bottom: 14px;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 22px 30px 22px 72px;
+  margin-bottom: 14px;
   box-shadow: var(--shadow);
-  transition: opacity var(--t-slow) var(--ease), border-color var(--t);
+  transition:
+    opacity var(--t-slow) var(--ease),
+    border-color var(--t);
 }
-.step.spent { opacity: .72 }
-.step.spent:hover, .step.spent:focus-within { opacity: 1 }
-.step.waiting { opacity: .55; border-style: dashed; box-shadow: none }
+.step.spent {
+  opacity: 0.72;
+}
+.step.spent:hover,
+.step.spent:focus-within {
+  opacity: 1;
+}
+.step.waiting {
+  opacity: 0.55;
+  border-style: dashed;
+  box-shadow: none;
+}
 .step.waiting .btn {
-  pointer-events: none; background: none; border-style: dashed;
-  border-color: var(--line); color: var(--faint); box-shadow: none; font-weight: 500;
+  pointer-events: none;
+  background: none;
+  border-style: dashed;
+  border-color: var(--line);
+  color: var(--faint);
+  box-shadow: none;
+  font-weight: 500;
 }
 .result .step::before {
-  content: ""; position: absolute; inset: 0 0 auto; height: 1px; border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .26), transparent);
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
 }
 
-.step-head { display: flex; align-items: center; gap: 12px; margin: 0 0 10px -42px }
-.step-no {
-  flex: none; display: grid; place-items: center;
-  width: 30px; height: 30px; border-radius: var(--r-sm);
-  background: var(--accent-soft); border: 1px solid rgba(255, 77, 46, .34);
-  color: var(--accent); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
-  transition: background var(--t), border-color var(--t), color var(--t);
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px -42px;
 }
-.step.waiting .step-no, .step.spent .step-no {
-  background: var(--panel-2); border-color: var(--line); color: var(--muted);
+.step-no {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  border: 1px solid rgba(255, 77, 46, 0.34);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background var(--t),
+    border-color var(--t),
+    color var(--t);
+}
+.step.waiting .step-no,
+.step.spent .step-no {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--muted);
 }
 .step .step-no.done {
-  background: var(--ok-soft); border-color: rgba(55, 211, 153, .34); color: var(--ok);
+  background: var(--ok-soft);
+  border-color: rgba(55, 211, 153, 0.34);
+  color: var(--ok);
 }
-.step-no svg { width: 16px; height: 16px; stroke-width: 2.6 }
+.step-no svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.6;
+}
 
 h2 {
-  margin: 0; font-size: 21px; line-height: 1.3; font-weight: 700; letter-spacing: -.018em;
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.018em;
 }
-  .step-note { margin: 0 0 14px; color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 60ch }
-#step-1 .compact { display: flex; align-items: center; gap: 20px; flex-wrap: wrap }
-#step-1 .compact .step-note { margin: 0; flex: 1 1 320px }
-.step-note:last-child { margin-bottom: 0 }
+.step-note {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+#step-1 .compact {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+#step-1 .compact .step-note {
+  margin: 0;
+  flex: 1 1 320px;
+}
+.step-note:last-child {
+  margin-bottom: 0;
+}
 
 /* ---------- кнопки ---------- */
 
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center }
-.row.center { justify-content: center }
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.row.center {
+  justify-content: center;
+}
 
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-  font-family: inherit; font-size: 15px; font-weight: 600; line-height: 1.2;
-  color: var(--ink); cursor: pointer;
-  padding: 13px 18px; min-height: 44px; border-radius: var(--r-sm);
-  border: 1px solid var(--line-strong); background: var(--panel-2);
-  transition: transform var(--t-fast) var(--ease), background var(--t), border-color var(--t),
-    box-shadow var(--t), color var(--t);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 13px 18px;
+  min-height: 44px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  transition:
+    transform var(--t-fast) var(--ease),
+    background var(--t),
+    border-color var(--t),
+    box-shadow var(--t),
+    color var(--t);
 }
-.btn svg { width: 17px; height: 17px; flex: none; stroke-width: 2.1; transition: transform var(--t) var(--ease) }
-.btn:not(:disabled):hover { background: rgba(255, 255, 255, .1); transform: translateY(-1px) }
-.btn:not(:disabled):active { transform: translateY(0) scale(.985) }
-.btn:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px }
-.btn:disabled { opacity: .5; cursor: default }
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  stroke-width: 2.1;
+  transition: transform var(--t) var(--ease);
+}
+.btn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.985);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .btn.primary {
   background: linear-gradient(180deg, #d43a18, #c43110);
-  border-color: rgba(255, 122, 92, .35); color: #fff;
-  box-shadow: 0 6px 18px rgba(196, 49, 16, .22);
+  border-color: rgba(255, 122, 92, 0.35);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(196, 49, 16, 0.22);
 }
 .btn.primary:not(:disabled):hover {
   background: linear-gradient(180deg, #e04220, #d03616);
-  box-shadow: 0 10px 24px rgba(196, 49, 16, .32);
+  box-shadow: 0 10px 24px rgba(196, 49, 16, 0.32);
 }
-.btn.big { width: 100%; padding: 17px 22px; font-size: 18px }
-.btn.big svg { width: 19px; height: 19px; stroke-width: 1.9 }
-.btn.ghost { background: transparent; border-color: var(--line-mid); font-weight: 500 }
-.btn.copied { background: var(--ok-soft); border-color: rgba(55, 211, 153, .4); color: #a9ecce; box-shadow: none }
-#download:not(:disabled):hover svg { transform: translateY(2px) }
+.btn.big {
+  width: 100%;
+  padding: 17px 22px;
+  font-size: 18px;
+}
+.btn.big svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.9;
+}
+.btn.ghost {
+  background: transparent;
+  border-color: var(--line-mid);
+  font-weight: 500;
+}
+.btn.copied {
+  background: var(--ok-soft);
+  border-color: rgba(55, 211, 153, 0.4);
+  color: #a9ecce;
+  box-shadow: none;
+}
+#download:not(:disabled):hover svg {
+  transform: translateY(2px);
+}
 
 /* ---------- зона загрузки ---------- */
 
 .drop {
-  position: relative; text-align: center;
-  padding: 34px 20px 28px; border-radius: var(--r-md);
-  border: 1px dashed var(--line-strong); background: rgba(255, 255, 255, .018);
-  transition: border-color var(--t), background var(--t);
+  position: relative;
+  text-align: center;
+  padding: 34px 20px 28px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line-strong);
+  background: rgba(255, 255, 255, 0.018);
+  transition:
+    border-color var(--t),
+    background var(--t);
 }
-.drop:hover { border-color: rgba(255, 255, 255, .3) }
-.drop:has(:focus-visible) { border-color: var(--indigo) }
-.drop.over { border-color: var(--accent); background: var(--accent-soft) }
-.drop.over .drop-icon { transform: translateY(-4px); color: var(--accent); border-color: rgba(255, 77, 46, .45) }
+.drop:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.drop:has(:focus-visible) {
+  border-color: var(--indigo);
+}
+.drop.over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.drop.over .drop-icon {
+  transform: translateY(-4px);
+  color: var(--accent);
+  border-color: rgba(255, 77, 46, 0.45);
+}
 .drop-icon {
-  width: 52px; height: 52px; margin: 0 auto 14px; border-radius: var(--r-md);
-  display: grid; place-items: center; color: var(--muted);
-  border: 1px solid var(--line-mid); background: var(--panel);
-  transition: transform var(--t) var(--ease), color var(--t), border-color var(--t);
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  transition:
+    transform var(--t) var(--ease),
+    color var(--t),
+    border-color var(--t);
 }
-.drop-icon svg { width: 24px; height: 24px; stroke-width: 1.6 }
-.big-label { font-size: 18px; font-weight: 600; margin-bottom: 6px }
-.hint { color: var(--faint); font-size: 14px; margin-bottom: 20px }
+.drop-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.6;
+}
+.big-label {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.hint {
+  color: var(--faint);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
 
 /* ---------- раскрывающиеся блоки ---------- */
 
-details.fold { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px }
+details.fold {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
 details.fold summary {
-  display: flex; align-items: flex-start; gap: 8px; cursor: pointer; list-style: none;
-  color: var(--muted); font-size: 15px; padding: 11px 0; min-height: 44px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-size: 15px;
+  padding: 11px 0;
+  min-height: 44px;
   transition: color var(--t);
 }
-details.fold summary::-webkit-details-marker { display: none }
-details.fold summary:hover { color: var(--ink) }
-details.fold summary:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; border-radius: var(--r-xs) }
-summary .chev { width: 16px; height: 16px; margin-top: 4px; flex: none; color: var(--faint); transition: transform var(--t) var(--ease) }
-summary .chev svg { width: 16px; height: 16px; display: block; stroke-width: 2.3 }
-details[open] summary .chev { transform: rotate(90deg) }
+details.fold summary::-webkit-details-marker {
+  display: none;
+}
+details.fold summary:hover {
+  color: var(--ink);
+}
+details.fold summary:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+summary .chev {
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  flex: none;
+  color: var(--faint);
+  transition: transform var(--t) var(--ease);
+}
+summary .chev svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke-width: 2.3;
+}
+details[open] summary .chev {
+  transform: rotate(90deg);
+}
 
-.fold-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-slow) var(--ease) }
-details[open] .fold-body { grid-template-rows: 1fr }
-details.fold.closing .fold-body { grid-template-rows: 0fr }
-.fold-inner { overflow: hidden; min-height: 0 }
-.fold-inner > :first-child { margin-top: 12px }
+.fold-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t-slow) var(--ease);
+}
+details[open] .fold-body {
+  grid-template-rows: 1fr;
+}
+details.fold.closing .fold-body {
+  grid-template-rows: 0fr;
+}
+.fold-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.fold-inner > :first-child {
+  margin-top: 12px;
+}
 
 textarea {
-  width: 100%; min-height: 140px; margin-bottom: 12px;
+  width: 100%;
+  min-height: 140px;
+  margin-bottom: 12px;
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 14px; line-height: 1.6;
-  color: #dedad4; background: rgba(0, 0, 0, .28);
-  border: 1px solid var(--line-mid); border-radius: var(--r-sm); padding: 13px; resize: vertical;
-  transition: border-color var(--t), box-shadow var(--t);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #dedad4;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-sm);
+  padding: 13px;
+  resize: vertical;
+  transition:
+    border-color var(--t),
+    box-shadow var(--t);
 }
-textarea:hover { border-color: var(--line-strong) }
+textarea:hover {
+  border-color: var(--line-strong);
+}
 textarea:focus {
-  outline: 2px solid transparent; border-color: var(--indigo);
-  box-shadow: 0 0 0 3px rgba(140, 155, 255, .2);
+  outline: 2px solid transparent;
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(140, 155, 255, 0.2);
 }
-textarea:read-only { background: rgba(0, 0, 0, .18); color: var(--muted); cursor: default }
-textarea::placeholder { color: var(--faint) }
+textarea:read-only {
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--muted);
+  cursor: default;
+}
+textarea::placeholder {
+  color: var(--faint);
+}
 
-.btn svg.spin { animation: spin 1s linear infinite }
-@keyframes spin { to { transform: rotate(360deg) } }
+.btn svg.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ---------- статус ---------- */
 
-.status { display: none; margin-top: 18px; font-size: 15px; color: var(--muted) }
-.status.on { display: block; animation: rise .3s var(--ease) both }
-.status b { color: var(--ink) }
-.status.bad {
-  display: flex; gap: 11px; align-items: flex-start;
-  border: 1px solid rgba(255, 106, 85, .3); background: var(--danger-soft);
-  border-radius: var(--r-md); padding: 14px 16px; color: #f2c5bd;
+.status {
+  display: none;
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--muted);
 }
-.status.bad > svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--danger); stroke-width: 2.1 }
+.status.on {
+  display: block;
+  animation: rise 0.3s var(--ease) both;
+}
+.status b {
+  color: var(--ink);
+}
+.status.bad {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 106, 85, 0.3);
+  background: var(--danger-soft);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  color: #f2c5bd;
+}
+.status.bad > svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--danger);
+  stroke-width: 2.1;
+}
 .status .track {
-  position: relative; height: 3px; border-radius: 2px; overflow: hidden;
-  background: var(--panel-2); margin-bottom: 12px;
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--panel-2);
+  margin-bottom: 12px;
 }
 .status .track::after {
-  content: ""; position: absolute; inset: 0; width: 38%; border-radius: 2px;
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  border-radius: 2px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   animation: sweep 1.15s linear infinite;
 }
 @keyframes sweep {
-  from { transform: translateX(-110%) }
-  to { transform: translateX(330%) }
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(330%);
+  }
 }
 
 /* ---------- результат ---------- */
 
-.result { display: none }
-.result.on { display: block; animation: rise .42s var(--ease) both }
+.result {
+  display: none;
+}
+.result.on {
+  display: block;
+  animation: rise 0.42s var(--ease) both;
+}
 @keyframes rise {
-  from { opacity: 0; transform: translate3d(0, 14px, 0) }
-  to { opacity: 1; transform: none }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px }
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
 .stat {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 12px; border-radius: 999px;
-  border: 1px solid var(--line-mid); background: var(--panel); font-size: 14px; color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  font-size: 14px;
+  color: var(--muted);
 }
-.stat svg { width: 15px; height: 15px; color: var(--faint); stroke-width: 2.3 }
-.stat b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums }
-.stat.promise { border-color: rgba(55, 211, 153, .3); background: var(--ok-soft); color: #a9ecce }
-.stat.promise svg { color: var(--ok) }
-.demo-mark { color: var(--muted) }
-.demo-mark svg { color: var(--faint) }
+.stat svg {
+  width: 15px;
+  height: 15px;
+  color: var(--faint);
+  stroke-width: 2.3;
+}
+.stat b {
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stat.promise {
+  border-color: rgba(55, 211, 153, 0.3);
+  background: var(--ok-soft);
+  color: #a9ecce;
+}
+.stat.promise svg {
+  color: var(--ok);
+}
+.demo-mark {
+  color: var(--muted);
+}
+.demo-mark svg {
+  color: var(--faint);
+}
 
-.save-as { margin: 12px 0 0; font-size: 13px; color: var(--faint) }
+.save-as {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--faint);
+}
 
-.done { border-top: 1px solid var(--line); margin-top: 4px }
-.done ol { margin: 12px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; line-height: 1.5 }
-.done li + li { margin-top: 6px }
+.done {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+.done ol {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.done li + li {
+  margin-top: 6px;
+}
 
-.notes { list-style: none; margin: 16px 0 0; padding: 0 }
+.notes {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
 .note {
-  display: flex; gap: 11px; align-items: flex-start;
-  border: 1px solid var(--line-mid); border-radius: var(--r-md);
-  padding: 14px 16px; margin-bottom: 8px; background: var(--panel); font-size: 15px; line-height: 1.5;
-  animation: rise var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms);
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1.5;
+  animation: rise var(--t-slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
-.note > svg { width: 17px; height: 17px; flex: none; margin-top: 3px; color: var(--faint); stroke-width: 2.1 }
-.note > div { max-width: 58ch }
-.note.warn { border-color: rgba(245, 182, 63, .28); background: var(--warn-soft) }
-.note.warn > svg { color: var(--warn) }
-.note.error { border-color: rgba(255, 106, 85, .32); background: var(--danger-soft) }
-.note.error > svg { color: var(--danger) }
-.note.good > svg { color: var(--ok) }
-.note .count { color: var(--faint) }
-.note .fix { margin-top: 12px }
-.note .fix .btn { padding: 10px 14px; font-size: 14px; min-height: 40px }
+.note > svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  margin-top: 3px;
+  color: var(--faint);
+  stroke-width: 2.1;
+}
+.note > div {
+  max-width: 58ch;
+}
+.note.warn {
+  border-color: rgba(245, 182, 63, 0.28);
+  background: var(--warn-soft);
+}
+.note.warn > svg {
+  color: var(--warn);
+}
+.note.error {
+  border-color: rgba(255, 106, 85, 0.32);
+  background: var(--danger-soft);
+}
+.note.error > svg {
+  color: var(--danger);
+}
+.note.good > svg {
+  color: var(--ok);
+}
+.note .count {
+  color: var(--faint);
+}
+.note .fix {
+  margin-top: 12px;
+}
+.note .fix .btn {
+  padding: 10px 14px;
+  font-size: 14px;
+  min-height: 40px;
+}
 
 /* ---------- превью ---------- */
 
-.preview { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line) }
-.preview-title {
-  margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--ink);
-  display: flex; align-items: center; gap: 8px;
+.preview {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
 }
-.preview-title svg { width: 17px; height: 17px; color: var(--faint); stroke-width: 2.1 }
-.preview .step-note { font-size: 14px; margin-bottom: 16px }
+.preview-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.preview-title svg {
+  width: 17px;
+  height: 17px;
+  color: var(--faint);
+  stroke-width: 2.1;
+}
+.preview .step-note {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
 
-.slides { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 20px 16px }
-.thumb { animation: rise var(--t-slow) var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms) }
+.slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 20px 16px;
+}
+.thumb {
+  animation: rise var(--t-slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
 .thumb .frame {
-  position: relative; overflow: hidden; border-radius: var(--r-sm); background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 12px 26px rgba(0, 0, 0, .45);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 12px 26px rgba(0, 0, 0, 0.45);
   transition: box-shadow var(--t);
 }
-.thumb:hover .frame { box-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 18px 34px rgba(0, 0, 0, .55) }
-.thumb .stage { position: absolute; top: 0; left: 0; transform-origin: 0 0 }
-.thumb .no { margin-top: 8px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--faint) }
-.stage div, .stage img { position: absolute }
-.stage img { object-fit: fill }
-.stage .t { white-space: pre-wrap; overflow: hidden }
+.thumb:hover .frame {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 18px 34px rgba(0, 0, 0, 0.55);
+}
+.thumb .stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+.thumb .no {
+  margin-top: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+.stage div,
+.stage img {
+  position: absolute;
+}
+.stage img {
+  object-fit: fill;
+}
+.stage .t {
+  white-space: pre-wrap;
+  overflow: hidden;
+}
 
 /* ---------- подвал ---------- */
 
 footer {
-  margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line);
-  color: var(--faint); font-size: 13px; line-height: 1.7;
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 13px;
+  line-height: 1.7;
 }
 .privacy {
-  display: flex; gap: 11px; align-items: flex-start;
-  border: 1px solid var(--line-mid); border-radius: var(--r-md);
-  background: var(--panel); padding: 14px 16px; margin-bottom: 16px; color: var(--muted); font-size: 15px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 15px;
 }
-.privacy svg { width: 18px; height: 18px; flex: none; color: var(--ok); margin-top: 2px; stroke-width: 2.1 }
-.foot-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px }
-.foot-row .btn { padding: 11px 15px; font-size: 14px }
-.legal a { color: #c8c4c0; text-underline-offset: 2px; display: inline-block; padding: 4px 0 }
-.legal a:hover { color: var(--ink) }
-a:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; border-radius: var(--r-xs) }
+.privacy svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--ok);
+  margin-top: 2px;
+  stroke-width: 2.1;
+}
+.foot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.foot-row .btn {
+  padding: 11px 15px;
+  font-size: 14px;
+}
+.legal a {
+  color: #c8c4c0;
+  text-underline-offset: 2px;
+  display: inline-block;
+  padding: 4px 0;
+}
+.legal a:hover {
+  color: var(--ink);
+}
+a:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
 
 /* ---------- телефон ---------- */
 
-.small-screen { display: none }
+.small-screen {
+  display: none;
+}
 
 @media (max-width: 900px) {
-  .deck-strip { display: none }
-  .hero { grid-template-columns: minmax(0, 1fr) }
+  .deck-strip {
+    display: none;
+  }
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 760px), (pointer: coarse) {
-  .on-touch { display: inline }
-  .on-mouse { display: none }
+  .on-touch {
+    display: inline;
+  }
+  .on-mouse {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {
-  .wrap { padding: 28px 16px 48px }
-  .head { margin-bottom: 28px }
-  .step { padding: 20px 18px 20px 50px; border-radius: var(--r-md); margin-bottom: 12px }
-  .step-head { align-items: flex-start; gap: 8px; margin: 0 0 10px -32px }
-  .step-no { width: 24px; height: 24px; margin-top: 2px; font-size: 13px; border-radius: 8px }
-  .step-no svg { width: 14px; height: 14px }
-  .btn { font-size: 14px }
-  .brand { margin-bottom: 20px }
-  .brand .pill { margin-left: 0 }
-  h1 { font-size: 30px }
-  h1 br { display: none }
-  h2 { font-size: 19px }
-  .drop { padding: 24px 16px 22px; border-radius: var(--r-sm) }
-  .drop-icon { width: 44px; height: 44px; margin-bottom: 12px; border-radius: var(--r-sm) }
-  .drop-icon svg { width: 21px; height: 21px }
-  .big-label { font-size: 17px }
-  .row .btn { flex: 1 1 auto }
-  .slides { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px 12px }
-  .small-screen {
-    display: flex; gap: 11px; align-items: flex-start;
-    border: 1px solid rgba(245, 182, 63, .28); background: var(--warn-soft);
-    border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 16px;
-    font-size: 15px; line-height: 1.5; color: #f0dcb4;
+  .wrap {
+    padding: 28px 16px 48px;
   }
-  .small-screen svg { width: 18px; height: 18px; flex: none; color: var(--warn); margin-top: 2px; stroke-width: 2.1 }
-  .foot-row { gap: 8px }
-  .foot-row .btn { width: 100% }
-  .foot-row > span { flex: 1 0 100% }
-  #step-1 .compact { display: block }
-  #step-1 .compact .step-note { margin-bottom: 14px }
+  .head {
+    margin-bottom: 28px;
+  }
+  .step {
+    padding: 20px 18px 20px 50px;
+    border-radius: var(--r-md);
+    margin-bottom: 12px;
+  }
+  .step-head {
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 10px -32px;
+  }
+  .step-no {
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .step-no svg {
+    width: 14px;
+    height: 14px;
+  }
+  .btn {
+    font-size: 14px;
+  }
+  .brand {
+    margin-bottom: 20px;
+  }
+  .brand .pill {
+    margin-left: 0;
+  }
+  h1 {
+    font-size: 30px;
+  }
+  h1 br {
+    display: none;
+  }
+  h2 {
+    font-size: 19px;
+  }
+  .drop {
+    padding: 24px 16px 22px;
+    border-radius: var(--r-sm);
+  }
+  .drop-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+    border-radius: var(--r-sm);
+  }
+  .drop-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+  .big-label {
+    font-size: 17px;
+  }
+  .row .btn {
+    flex: 1 1 auto;
+  }
+  .slides {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px 12px;
+  }
+  .small-screen {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    border: 1px solid rgba(245, 182, 63, 0.28);
+    background: var(--warn-soft);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #f0dcb4;
+  }
+  .small-screen svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--warn);
+    margin-top: 2px;
+    stroke-width: 2.1;
+  }
+  .foot-row {
+    gap: 8px;
+  }
+  .foot-row .btn {
+    width: 100%;
+  }
+  .foot-row > span {
+    flex: 1 0 100%;
+  }
+  #step-1 .compact {
+    display: block;
+  }
+  #step-1 .compact .step-note {
+    margin-bottom: 14px;
+  }
 }
 
 @media (max-width: 420px) {
-  .logo { font-size: 23px }
-  .slides { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .logo {
+    font-size: 23px;
+  }
+  .slides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
+    transition-duration: 0.01ms !important;
   }
   .status .track::after {
-    width: 100%; transform: none; animation: none; opacity: .45;
+    width: 100%;
+    transform: none;
+    animation: none;
+    opacity: 0.45;
     background: var(--accent);
   }
 }
@@ -737,12 +1403,18 @@ window.MPGA_ICONS_VERSION = "1.45.0";
 <script>
 (() => {
   const SLIDE_SELECTORS = [
-    'section.slide', '.slide', 'section.mpga-slide', '[data-slide]',
-    '.page', 'section.page', 'article.slide', 'div.slide',
-  ]
+    "section.slide",
+    ".slide",
+    "section.mpga-slide",
+    "[data-slide]",
+    ".page",
+    "section.page",
+    "article.slide",
+    "div.slide",
+  ];
 
-  const SAFE_FONTS = 'Arial, "Liberation Sans", Helvetica, sans-serif'
-  const SAFE_MONO = '"Courier New", "Liberation Mono", monospace'
+  const SAFE_FONTS = 'Arial, "Liberation Sans", Helvetica, sans-serif';
+  const SAFE_MONO = '"Courier New", "Liberation Mono", monospace';
 
   const BASE_CSS = `
     *, *::before, *::after {
@@ -764,1390 +1436,1681 @@ window.MPGA_ICONS_VERSION = "1.45.0";
       filter: none !important; clip-path: none !important;
       scale: none !important; translate: none !important; rotate: none !important;
     }
-  `
+  `;
 
   function findSlides(doc) {
     for (const sel of SLIDE_SELECTORS) {
-      const found = [...doc.querySelectorAll(sel)]
-      if (found.length) return { selector: sel, nodes: found }
+      const found = [...doc.querySelectorAll(sel)];
+      if (found.length) return { selector: sel, nodes: found };
     }
-    return { selector: null, nodes: [] }
+    return { selector: null, nodes: [] };
   }
 
   function iconSvg(doc, name, icons) {
-    const body = icons[name]
-    if (!body) return null
-    const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    svg.setAttribute('class', `lucide lucide-${name}`)
-    svg.setAttribute('viewBox', '0 0 24 24')
-    svg.setAttribute('fill', 'none')
-    svg.setAttribute('stroke', 'currentColor')
-    svg.setAttribute('stroke-width', '2')
-    svg.setAttribute('stroke-linecap', 'round')
-    svg.setAttribute('stroke-linejoin', 'round')
-    svg.innerHTML = body
-    return svg
+    const body = icons[name];
+    if (!body) return null;
+    const svg = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", `lucide lucide-${name}`);
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.innerHTML = body;
+    return svg;
   }
 
-  const iconNotes = []
+  const iconNotes = [];
 
   function paintIcons(win, notes = iconNotes) {
-    const doc = win.document || win
-    const view = win.document ? win : (doc.defaultView || window)
-    const icons = window.MPGA_ICONS || {}
-    const missing = new Set()
-    let done = 0
-    const targets = [...doc.querySelectorAll('[data-lucide], [data-icon], [data-mpga-icon]')]
+    const doc = win.document || win;
+    const view = win.document ? win : doc.defaultView || window;
+    const icons = window.MPGA_ICONS || {};
+    const missing = new Set();
+    let done = 0;
+    const targets = [...doc.querySelectorAll("[data-lucide], [data-icon], [data-mpga-icon]")];
     for (const el of targets) {
-      const name = (el.getAttribute('data-lucide') || el.getAttribute('data-icon') ||
-                    el.getAttribute('data-mpga-icon') || '').trim().toLowerCase()
-      let svg = iconSvg(doc, name, icons)
+      const name = (
+        el.getAttribute("data-lucide") ||
+        el.getAttribute("data-icon") ||
+        el.getAttribute("data-mpga-icon") ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      let svg = iconSvg(doc, name, icons);
       if (!svg) {
-        missing.add(name || '(пусто)')
-        svg = iconSvg(doc, 'circle-help', icons) || iconSvg(doc, 'circle', icons)
+        missing.add(name || "(пусто)");
+        svg = iconSvg(doc, "circle-help", icons) || iconSvg(doc, "circle", icons);
       }
-      if (!svg) continue
+      if (!svg) continue;
 
-      const st = view.getComputedStyle(el)
-      const rect = el.getBoundingClientRect()
-      const size = rect.width >= 4 ? rect.width : (parseFloat(st.fontSize) || 24)
-      const height = rect.height >= 4 ? rect.height : size
-      svg.setAttribute('width', size)
-      svg.setAttribute('height', height)
-      if (st.color) svg.style.color = st.color
-      const strokeWidth = st.getPropertyValue('stroke-width')
+      const st = view.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      const size = rect.width >= 4 ? rect.width : parseFloat(st.fontSize) || 24;
+      const height = rect.height >= 4 ? rect.height : size;
+      svg.setAttribute("width", size);
+      svg.setAttribute("height", height);
+      if (st.color) svg.style.color = st.color;
+      const strokeWidth = st.getPropertyValue("stroke-width");
       if (strokeWidth && parseFloat(strokeWidth) > 0 && parseFloat(strokeWidth) !== 1) {
-        svg.setAttribute('stroke-width', parseFloat(strokeWidth))
+        svg.setAttribute("stroke-width", parseFloat(strokeWidth));
       }
       for (const attr of el.attributes) {
-        if (attr.name.startsWith('data-')) continue
-        if (attr.name === 'class') svg.setAttribute('class', `${svg.getAttribute('class')} ${attr.value}`)
-        else if (attr.name === 'style') svg.setAttribute('style', `${svg.getAttribute('style') || ''};${attr.value}`)
-        else svg.setAttribute(attr.name, attr.value)
+        if (attr.name.startsWith("data-")) continue;
+        if (attr.name === "class")
+          svg.setAttribute("class", `${svg.getAttribute("class")} ${attr.value}`);
+        else if (attr.name === "style")
+          svg.setAttribute("style", `${svg.getAttribute("style") || ""};${attr.value}`);
+        else svg.setAttribute(attr.name, attr.value);
       }
-      el.replaceWith(svg)
-      done++
+      el.replaceWith(svg);
+      done++;
     }
     if (done) {
-      notes.push({ code: 'icons', level: 'info',
-        text: `Иконки (${done} шт.) взяты из встроенного набора — интернет не нужен.` })
+      notes.push({
+        code: "icons",
+        level: "info",
+        text: `Иконки (${done} шт.) взяты из встроенного набора — интернет не нужен.`,
+      });
     }
     if (missing.size) {
-      const list = [...missing].slice(0, 8).join(', ')
-      notes.push({ code: 'icon-missing', level: 'warn',
+      const list = [...missing].slice(0, 8).join(", ");
+      notes.push({
+        code: "icon-missing",
+        level: "warn",
         text: `Не нашлось иконок: ${list}. На их месте — знак вопроса.`,
-        fix: `В презентации есть иконки, которых нет в наборе lucide: ${list}. ` +
-             `Замени их на существующие имена иконок lucide.` })
+        fix:
+          `В презентации есть иконки, которых нет в наборе lucide: ${list}. ` +
+          `Замени их на существующие имена иконок lucide.`,
+      });
     }
-    return notes
+    return notes;
   }
 
   function stripExternal(doc, notes) {
-    const cut = { scripts: 0, styles: 0, fonts: 0 }
-    for (const el of [...doc.querySelectorAll('script[src]')]) {
-      if (/^https?:/i.test(el.getAttribute('src') || '')) { el.remove(); cut.scripts++ }
+    const cut = { scripts: 0, styles: 0, fonts: 0 };
+    for (const el of doc.querySelectorAll("script[src]")) {
+      if (/^https?:/i.test(el.getAttribute("src") || "")) {
+        el.remove();
+        cut.scripts++;
+      }
     }
-    for (const el of [...doc.querySelectorAll('link[rel~="stylesheet" i], link[rel="preload"][as="style"]')]) {
-      const href = el.getAttribute('href') || ''
-      if (!/^https?:/i.test(href)) continue
-      el.remove()
-      if (/fonts\.(googleapis|gstatic)|fontshare|typekit/i.test(href)) cut.fonts++
-      else cut.styles++
+    for (const el of doc.querySelectorAll(
+      'link[rel~="stylesheet" i], link[rel="preload"][as="style"]',
+    )) {
+      const href = el.getAttribute("href") || "";
+      if (!/^https?:/i.test(href)) continue;
+      el.remove();
+      if (/fonts\.(googleapis|gstatic)|fontshare|typekit/i.test(href)) cut.fonts++;
+      else cut.styles++;
     }
-    for (const st of [...doc.querySelectorAll('style')]) {
-      const css = st.textContent || ''
+    for (const st of doc.querySelectorAll("style")) {
+      const css = st.textContent || "";
       if (/@import\s+(url\()?["']?https?:/i.test(css)) {
-        st.textContent = css.replace(/@import[^;]+;/gi, '')
-        cut.fonts++
+        st.textContent = css.replace(/@import[^;]+;/gi, "");
+        cut.fonts++;
       }
     }
     if (cut.scripts) {
-      notes.push({ code: 'ext-script', level: 'info',
-        text: `Убрано подключений из интернета: ${cut.scripts}. Всё нужное уже внутри MPGA.` })
+      notes.push({
+        code: "ext-script",
+        level: "info",
+        text: `Убрано подключений из интернета: ${cut.scripts}. Всё нужное уже внутри MPGA.`,
+      });
     }
     if (cut.styles) {
-      notes.push({ code: 'ext-style', level: 'warn',
+      notes.push({
+        code: "ext-style",
+        level: "warn",
         text: `Убрано внешних таблиц стилей: ${cut.styles}. Оформление может отличаться.`,
-        fix: 'Не подключай CSS-библиотеки по ссылке (Tailwind, Bootstrap и т. п.). ' +
-             'Весь CSS должен быть внутри файла в теге <style>.' })
+        fix:
+          "Не подключай CSS-библиотеки по ссылке (Tailwind, Bootstrap и т. п.). " +
+          "Весь CSS должен быть внутри файла в теге <style>.",
+      });
     }
     if (cut.fonts) {
-      notes.push({ code: 'ext-font', level: 'info',
-        text: 'Шрифты из интернета заменены на Arial — так презентация выглядит одинаково везде.' })
+      notes.push({
+        code: "ext-font",
+        level: "info",
+        text: "Шрифты из интернета заменены на Arial — так презентация выглядит одинаково везде.",
+      });
     }
   }
 
   function checkImages(doc, notes) {
-    const remote = []
-    for (const img of doc.querySelectorAll('img')) {
-      const src = img.getAttribute('src') || ''
-      if (/^https?:/i.test(src)) remote.push(src)
-      else if (!/^data:/i.test(src) && src) remote.push(src)
+    const remote = [];
+    for (const img of doc.querySelectorAll("img")) {
+      const src = img.getAttribute("src") || "";
+      if (/^https?:/i.test(src)) remote.push(src);
+      else if (!/^data:/i.test(src) && src) remote.push(src);
     }
-    const bgUrls = []
-    for (const st of doc.querySelectorAll('style')) {
-      for (const m of (st.textContent || '').matchAll(/url\(\s*["']?(https?:[^"')]+)/gi)) bgUrls.push(m[1])
+    const bgUrls = [];
+    for (const st of doc.querySelectorAll("style")) {
+      for (const m of (st.textContent || "").matchAll(/url\(\s*["']?(https?:[^"')]+)/gi))
+        bgUrls.push(m[1]);
     }
     if (remote.length || bgUrls.length) {
-      notes.push({ code: 'remote-image', level: 'warn',
-        text: `Картинок по ссылке из интернета: ${remote.length + bgUrls.length}. ` +
-              'Они могут не попасть в PPTX — их не разрешает читать браузер.',
-        fix: 'Не вставляй картинки по ссылке (<img src="https://...">). ' +
-             'Рисуй иллюстрации через inline SVG или используй иконки lucide.' })
+      notes.push({
+        code: "remote-image",
+        level: "warn",
+        text:
+          `Картинок по ссылке из интернета: ${remote.length + bgUrls.length}. ` +
+          "Они могут не попасть в PPTX — их не разрешает читать браузер.",
+        fix:
+          'Не вставляй картинки по ссылке (<img src="https://...">). ' +
+          "Рисуй иллюстрации через inline SVG или используй иконки lucide.",
+      });
     }
   }
 
   function addIconShim(doc) {
-    const shim = doc.createElement('script')
+    const shim = doc.createElement("script");
     shim.textContent =
-      'window.lucide = window.lucide || { createIcons: function () {' +
-      ' try { window.parent.MPGA.paintIcons(document) } catch (e) {} }, replace: function () {' +
-      ' try { window.parent.MPGA.paintIcons(document) } catch (e) {} } };'
-    doc.head ? doc.head.insertBefore(shim, doc.head.firstChild) : doc.body.prepend(shim)
+      "window.lucide = window.lucide || { createIcons: function () {" +
+      " try { window.parent.MPGA.paintIcons(document) } catch (e) {} }, replace: function () {" +
+      " try { window.parent.MPGA.paintIcons(document) } catch (e) {} } };";
+    if (doc.head) doc.head.insertBefore(shim, doc.head.firstChild);
+    else doc.body.prepend(shim);
   }
 
   function forceSlidesVisible(doc, slides) {
-    for (const el of slides) el.classList.add('mpga-slide-root')
+    for (const el of slides) el.classList.add("mpga-slide-root");
   }
 
   function normalize(htmlText) {
-    const notes = []
-    const doc = new DOMParser().parseFromString(htmlText, 'text/html')
+    const notes = [];
+    const doc = new DOMParser().parseFromString(htmlText, "text/html");
     if (!doc.body || !doc.body.children.length) {
-      return { doc: null, html: null, notes, slideSelector: null, slideCount: 0 }
+      return { doc: null, html: null, notes, slideSelector: null, slideCount: 0 };
     }
 
-    stripExternal(doc, notes)
-    addIconShim(doc)
-    checkImages(doc, notes)
+    stripExternal(doc, notes);
+    addIconShim(doc);
+    checkImages(doc, notes);
 
-    const { selector, nodes } = findSlides(doc)
-    forceSlidesVisible(doc, nodes)
+    const { selector, nodes } = findSlides(doc);
+    forceSlidesVisible(doc, nodes);
 
-    const style = doc.createElement('style')
-    style.id = 'mpga-base'
-    style.textContent = BASE_CSS
-    doc.head ? doc.head.appendChild(style) : doc.body.prepend(style)
+    const style = doc.createElement("style");
+    style.id = "mpga-base";
+    style.textContent = BASE_CSS;
+    if (doc.head) doc.head.appendChild(style);
+    else doc.body.prepend(style);
 
     return {
-      html: '<!doctype html>' + doc.documentElement.outerHTML,
+      html: "<!doctype html>" + doc.documentElement.outerHTML,
       notes,
       slideSelector: selector,
       slideCount: nodes.length,
-    }
+    };
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.normalize = normalize
-  window.MPGA.paintIcons = (win, notes) => paintIcons(win, notes)
-  window.MPGA.drainIconNotes = () => iconNotes.splice(0, iconNotes.length)
-  window.MPGA.findSlides = findSlides
-  window.MPGA.SLIDE_SELECTORS = SLIDE_SELECTORS
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.normalize = normalize;
+  window.MPGA.paintIcons = (win, notes) => paintIcons(win, notes);
+  window.MPGA.drainIconNotes = () => iconNotes.splice(0, iconNotes.length);
+  window.MPGA.findSlides = findSlides;
+  window.MPGA.SLIDE_SELECTORS = SLIDE_SELECTORS;
+})();
 
 </script>
 <script>
 (() => {
-  const SLIDE_W_EMU = 12192000
-  const SLIDE_H_EMU = 6858000
+  const SLIDE_W_EMU = 12192000;
+  const SLIDE_H_EMU = 6858000;
 
-  const px = v => parseFloat(v) || 0
+  const px = (v) => parseFloat(v) || 0;
 
   function hex(color) {
-    if (!color) return null
-    const m = String(color).match(/rgba?\(([^)]+)\)/)
-    if (!m) return null
-    const parts = m[1].split(',').map(s => parseFloat(s))
-    const alpha = parts.length > 3 ? parts[3] : 1
-    if (!alpha) return null
-    const value = parts.slice(0, 3)
-      .map(v => Math.round(v).toString(16).padStart(2, '0')).join('').toUpperCase()
-    return { hex: value, alpha }
+    if (!color) return null;
+    const m = String(color).match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    const parts = m[1].split(",").map((s) => parseFloat(s));
+    const alpha = parts.length > 3 ? parts[3] : 1;
+    if (!alpha) return null;
+    const value = parts
+      .slice(0, 3)
+      .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+    return { hex: value, alpha };
   }
 
   function transformInfo(value) {
-    if (!value || value === 'none') return { rot: 0, simple: true }
-    const m = value.match(/matrix\(([^)]+)\)/)
-    if (!m) return { rot: 0, simple: false }
-    const [a, b, c, d] = m[1].split(',').map(Number)
-    const rot = Math.atan2(b, a) * 180 / Math.PI
-    const scaleX = Math.hypot(a, b)
-    const scaleY = Math.hypot(c, d)
-    const skew = Math.atan2(-c, d) * 180 / Math.PI - rot
-    const simple = Math.abs(scaleX - 1) < 0.02 && Math.abs(scaleY - 1) < 0.02 && Math.abs(skew) < 0.5
-    return { rot: Math.abs(rot) < 0.2 ? 0 : rot, simple }
+    if (!value || value === "none") return { rot: 0, simple: true };
+    const m = value.match(/matrix\(([^)]+)\)/);
+    if (!m) return { rot: 0, simple: false };
+    const [a, b, c, d] = m[1].split(",").map(Number);
+    const rot = (Math.atan2(b, a) * 180) / Math.PI;
+    const scaleX = Math.hypot(a, b);
+    const scaleY = Math.hypot(c, d);
+    const skew = (Math.atan2(-c, d) * 180) / Math.PI - rot;
+    const simple =
+      Math.abs(scaleX - 1) < 0.02 && Math.abs(scaleY - 1) < 0.02 && Math.abs(skew) < 0.5;
+    return { rot: Math.abs(rot) < 0.2 ? 0 : rot, simple };
   }
 
   function fontOf(family) {
-    const f = String(family || '').toLowerCase()
-    if (f.includes('courier') || f.includes('mono')) return 'Courier New'
-    return 'Arial'
+    const f = String(family || "").toLowerCase();
+    if (f.includes("courier") || f.includes("mono")) return "Courier New";
+    return "Arial";
   }
 
   function applyTransform(text, mode) {
-    if (mode === 'uppercase') return text.toUpperCase()
-    if (mode === 'lowercase') return text.toLowerCase()
-    if (mode === 'capitalize') return text.replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase())
-    return text
+    if (mode === "uppercase") return text.toUpperCase();
+    if (mode === "lowercase") return text.toLowerCase();
+    if (mode === "capitalize") return text.replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase());
+    return text;
   }
 
-  function extract(win, options = {}) {
-    const doc = win.document
-    const style = el => win.getComputedStyle(el)
-    const pseudo = (el, which) => win.getComputedStyle(el, which)
-    const warnings = []
+  function extract(win) {
+    const doc = win.document;
+    const style = (el) => win.getComputedStyle(el);
+    const pseudo = (el, which) => win.getComputedStyle(el, which);
+    const warnings = [];
     const warn = (code, text, fix, slide) => {
-      const seen = warnings.find(w => w.code === code && w.slide === slide)
-      if (seen) { seen.count++; return }
-      warnings.push({ code, level: 'warn', text, fix, slide, count: 1 })
-    }
+      const seen = warnings.find((w) => w.code === code && w.slide === slide);
+      if (seen) {
+        seen.count++;
+        return;
+      }
+      warnings.push({ code, level: "warn", text, fix, slide, count: 1 });
+    };
 
-    const slideEls = [...doc.querySelectorAll('.mpga-slide-root')]
-    if (!slideEls.length) return { slides: [], warnings, epx: 0 }
+    const slideEls = [...doc.querySelectorAll(".mpga-slide-root")];
+    if (!slideEls.length) return { slides: [], warnings, epx: 0 };
 
-    const first = slideEls[0].getBoundingClientRect()
-    const epx = SLIDE_W_EMU / first.width
-    const slides = []
-    let captureSeq = 0
+    const first = slideEls[0].getBoundingClientRect();
+    const epx = SLIDE_W_EMU / first.width;
+    const slides = [];
+    let captureSeq = 0;
 
     slideEls.forEach((slideEl, si) => {
-      const S = slideEl.getBoundingClientRect()
-      const ox = S.left
-      const oy = S.top
-      const boxes = []
-      const texts = []
-      const images = []
-      const captures = []
+      const S = slideEl.getBoundingClientRect();
+      const ox = S.left;
+      const oy = S.top;
+      const boxes = [];
+      const texts = [];
+      const images = [];
+      const captures = [];
 
       if (Math.abs(S.width - first.width) > 1) {
-        warn('slide-size', `Слайд ${si + 1} другого размера, чем первый — он может обрезаться.`,
-          'Сделай все слайды одного размера.', si)
+        warn(
+          "slide-size",
+          `Слайд ${si + 1} другого размера, чем первый — он может обрезаться.`,
+          "Сделай все слайды одного размера.",
+          si,
+        );
       }
 
-      const rasterRoots = new Map()
-      const rotatedRoots = new Set()
-      const spunBoxes = new Map()
+      const rasterRoots = new Map();
+      const rotatedRoots = new Set();
+      const spunBoxes = new Map();
 
       const markRaster = (el, kind) => {
-        if (rasterRoots.has(el)) return
-        for (const other of rasterRoots.keys()) if (other.contains(el)) return
-        rasterRoots.set(el, kind)
-      }
+        if (rasterRoots.has(el)) return;
+        for (const other of rasterRoots.keys()) if (other.contains(el)) return;
+        rasterRoots.set(el, kind);
+      };
 
-      const walkAll = el => [el, ...el.querySelectorAll('*')]
+      const walkAll = (el) => [el, ...el.querySelectorAll("*")];
 
       for (const el of walkAll(slideEl)) {
-        if (el === slideEl) continue
-        const tag = el.tagName.toLowerCase()
-        if (tag === 'style' || tag === 'script') continue
-        const st = style(el)
-        if (st.display === 'none' || st.visibility === 'hidden' || px(st.opacity) === 0) continue
-        const t = transformInfo(st.transform)
-        if (tag === 'svg') markRaster(el, 'svg')
-        else if (['canvas', 'video', 'iframe', 'object', 'embed'].includes(tag)) markRaster(el, 'embed')
-        else if (el.hasAttribute('data-raster')) markRaster(el, 'explicit')
+        if (el === slideEl) continue;
+        const tag = el.tagName.toLowerCase();
+        if (tag === "style" || tag === "script") continue;
+        const st = style(el);
+        if (st.display === "none" || st.visibility === "hidden" || px(st.opacity) === 0) continue;
+        const t = transformInfo(st.transform);
+        if (tag === "svg") markRaster(el, "svg");
+        else if (["canvas", "video", "iframe", "object", "embed"].includes(tag))
+          markRaster(el, "embed");
+        else if (el.hasAttribute("data-raster")) markRaster(el, "explicit");
         else if (t.rot !== 0 || !t.simple) {
-          const plain = t.rot !== 0 && t.simple && !el.children.length && !el.textContent.trim()
-          if (plain) spunBoxes.set(el, t.rot)
-          else { markRaster(el, 'transform'); rotatedRoots.add(el) }
+          const plain = t.rot !== 0 && t.simple && !el.children.length && !el.textContent.trim();
+          if (plain) spunBoxes.set(el, t.rot);
+          else {
+            markRaster(el, "transform");
+            rotatedRoots.add(el);
+          }
         }
       }
 
-      const insideRaster = el => {
-        for (const root of rasterRoots.keys()) if (root !== el && root.contains(el)) return true
-        return false
-      }
+      const insideRaster = (el) => {
+        for (const root of rasterRoots.keys()) if (root !== el && root.contains(el)) return true;
+        return false;
+      };
 
       if (rotatedRoots.size) {
-        warn('rotated', `Повёрнутые блоки (${rotatedRoots.size} шт.) вставлены картинкой — текст в них не редактируется.`,
-          'Не поворачивай блоки через transform: rotate — PowerPoint получает их картинкой.', si)
+        warn(
+          "rotated",
+          `Повёрнутые блоки (${rotatedRoots.size} шт.) вставлены картинкой — текст в них не редактируется.`,
+          "Не поворачивай блоки через transform: rotate — PowerPoint получает их картинкой.",
+          si,
+        );
       }
 
-      const consumed = new Set()
-      const range = doc.createRange()
-      const unionRect = nodes => {
-        let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity
+      const consumed = new Set();
+      const range = doc.createRange();
+      const unionRect = (nodes) => {
+        let left = Infinity,
+          top = Infinity,
+          right = -Infinity,
+          bottom = -Infinity;
         for (const node of nodes) {
-          let r
-          if (node.nodeType === 3) { range.selectNode(node); r = range.getBoundingClientRect() }
-          else r = node.getBoundingClientRect()
-          if (r.width < 0.5 && r.height < 0.5) continue
-          left = Math.min(left, r.left); top = Math.min(top, r.top)
-          right = Math.max(right, r.right); bottom = Math.max(bottom, r.bottom)
+          let r;
+          if (node.nodeType === 3) {
+            range.selectNode(node);
+            r = range.getBoundingClientRect();
+          } else r = node.getBoundingClientRect();
+          if (r.width < 0.5 && r.height < 0.5) continue;
+          left = Math.min(left, r.left);
+          top = Math.min(top, r.top);
+          right = Math.max(right, r.right);
+          bottom = Math.max(bottom, r.bottom);
         }
-        if (left === Infinity) return { width: 0, height: 0 }
-        return { left, top, right, bottom, width: right - left, height: bottom - top }
-      }
+        if (left === Infinity) return { width: 0, height: 0 };
+        return { left, top, right, bottom, width: right - left, height: bottom - top };
+      };
 
       const addCapture = (el, kind, rect, extra = {}) => {
-        const id = `cap-${si}-${captureSeq++}`
-        el.setAttribute('data-mpga-cap', id)
-        captures.push({ id, kind, ...extra })
-        const rot = kind === 'transform' ? transformInfo(style(el).transform).rot : 0
-        const w = rot ? (el.offsetWidth || rect.width) : rect.width
-        const h = rot ? (el.offsetHeight || rect.height) : rect.height
+        const id = `cap-${si}-${captureSeq++}`;
+        el.setAttribute("data-mpga-cap", id);
+        captures.push({ id, kind, ...extra });
+        const rot = kind === "transform" ? transformInfo(style(el).transform).rot : 0;
+        const w = rot ? el.offsetWidth || rect.width : rect.width;
+        const h = rot ? el.offsetHeight || rect.height : rect.height;
         images.push({
-          id, kind, rot,
+          id,
+          kind,
+          rot,
           x: rot ? (rect.left + rect.right) / 2 - ox - w / 2 : rect.left - ox,
           y: rot ? (rect.top + rect.bottom) / 2 - oy - h / 2 : rect.top - oy,
-          w, h,
-        })
-        return id
-      }
+          w,
+          h,
+        });
+        return id;
+      };
 
       const pushBoxesFor = (el, st, r, geom) => {
-        const bg = hex(st.backgroundColor)
-        const hasBgImage = st.backgroundImage && st.backgroundImage !== 'none'
-        const sides = ['Top', 'Right', 'Bottom', 'Left'].map(s => ({
-          w: px(st[`border${s}Width`]),
-          c: hex(st[`border${s}Color`]),
-          side: s.toLowerCase(),
-        })).filter(b => b.w > 0.4 && b.c && st[`border${b.side}Style`] !== 'none')
-        const uniform = sides.length === 4 &&
-          sides.every(b => Math.abs(b.w - sides[0].w) < 0.5 && b.c.hex === sides[0].c.hex)
+        const bg = hex(st.backgroundColor);
+        const hasBgImage = st.backgroundImage && st.backgroundImage !== "none";
+        const sides = ["Top", "Right", "Bottom", "Left"]
+          .map((s) => ({
+            w: px(st[`border${s}Width`]),
+            c: hex(st[`border${s}Color`]),
+            side: s.toLowerCase(),
+          }))
+          .filter((b) => b.w > 0.4 && b.c && st[`border${b.side}Style`] !== "none");
+        const uniform =
+          sides.length === 4 &&
+          sides.every((b) => Math.abs(b.w - sides[0].w) < 0.5 && b.c.hex === sides[0].c.hex);
 
-        let radius = px(st.borderTopLeftRadius)
-        if (String(st.borderTopLeftRadius).includes('%')) radius = r.width * px(st.borderTopLeftRadius) / 100
-        const isOval = radius > 0 && radius >= Math.min(r.width, r.height) / 2 - 1
+        let radius = px(st.borderTopLeftRadius);
+        if (String(st.borderTopLeftRadius).includes("%"))
+          radius = (r.width * px(st.borderTopLeftRadius)) / 100;
+        const isOval = radius > 0 && radius >= Math.min(r.width, r.height) / 2 - 1;
 
         if (hasBgImage) {
-          addCapture(el, 'background', r, { selfOnly: true })
-          return
+          addCapture(el, "background", r, { selfOnly: true });
+          return;
         }
-        if (!bg && !sides.length) return
+        if (!bg && !sides.length) return;
 
         const box = {
-          x: geom.x, y: geom.y, w: geom.w, h: geom.h,
+          x: geom.x,
+          y: geom.y,
+          w: geom.w,
+          h: geom.h,
           fill: bg ? bg.hex : null,
           alpha: bg ? bg.alpha : 1,
           radius: isOval ? -1 : radius,
+        };
+        if (geom.rot) box.rot = geom.rot;
+        if (uniform) {
+          box.stroke = sides[0].c.hex;
+          box.strokeW = sides[0].w;
         }
-        if (geom.rot) box.rot = geom.rot
-        if (uniform) { box.stroke = sides[0].c.hex; box.strokeW = sides[0].w }
-        boxes.push(box)
+        boxes.push(box);
 
         if (!uniform) {
           for (const b of sides) {
-            const bar = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, fill: b.c.hex, radius: 0 }
-            if (geom.rot) bar.rot = geom.rot
-            if (b.side === 'top') bar.h = b.w
-            else if (b.side === 'bottom') { bar.y = geom.y + geom.h - b.w; bar.h = b.w }
-            else if (b.side === 'left') bar.w = b.w
-            else if (b.side === 'right') { bar.x = geom.x + geom.w - b.w; bar.w = b.w }
-            boxes.push(bar)
+            const bar = { x: geom.x, y: geom.y, w: geom.w, h: geom.h, fill: b.c.hex, radius: 0 };
+            if (geom.rot) bar.rot = geom.rot;
+            if (b.side === "top") bar.h = b.w;
+            else if (b.side === "bottom") {
+              bar.y = geom.y + geom.h - b.w;
+              bar.h = b.w;
+            } else if (b.side === "left") bar.w = b.w;
+            else if (b.side === "right") {
+              bar.x = geom.x + geom.w - b.w;
+              bar.w = b.w;
+            }
+            boxes.push(bar);
           }
         }
-      }
+      };
 
       const pushPseudo = (el, r, which) => {
-        const p = pseudo(el, which)
-        if (!p) return
-        const content = p.content
-        if (!content || content === 'none' || content === 'normal') return
-        const fill = hex(p.backgroundColor)
-        if (!fill) return
-        if (p.position !== 'absolute' && p.position !== 'fixed') return
-        let w = px(p.width)
-        let h = px(p.height)
-        const has = v => v && v !== 'auto'
-        if (!w && has(p.left) && has(p.right)) w = r.width - px(p.left) - px(p.right)
-        if (!h && has(p.top) && has(p.bottom)) h = r.height - px(p.top) - px(p.bottom)
-        if (w < 0.5 || h < 0.5) return
-        const x = has(p.left) ? px(p.left) : (has(p.right) ? r.width - px(p.right) - w : 0)
-        const y = has(p.top) ? px(p.top) : (has(p.bottom) ? r.height - px(p.bottom) - h : 0)
+        const p = pseudo(el, which);
+        if (!p) return;
+        const content = p.content;
+        if (!content || content === "none" || content === "normal") return;
+        const fill = hex(p.backgroundColor);
+        if (!fill) return;
+        if (p.position !== "absolute" && p.position !== "fixed") return;
+        let w = px(p.width);
+        let h = px(p.height);
+        const has = (v) => v && v !== "auto";
+        if (!w && has(p.left) && has(p.right)) w = r.width - px(p.left) - px(p.right);
+        if (!h && has(p.top) && has(p.bottom)) h = r.height - px(p.top) - px(p.bottom);
+        if (w < 0.5 || h < 0.5) return;
+        const x = has(p.left) ? px(p.left) : has(p.right) ? r.width - px(p.right) - w : 0;
+        const y = has(p.top) ? px(p.top) : has(p.bottom) ? r.height - px(p.bottom) - h : 0;
         boxes.push({
-          x: r.left - ox + x, y: r.top - oy + y, w, h,
-          fill: fill.hex, alpha: fill.alpha, radius: px(p.borderTopLeftRadius),
-        })
-      }
+          x: r.left - ox + x,
+          y: r.top - oy + y,
+          w,
+          h,
+          fill: fill.hex,
+          alpha: fill.alpha,
+          radius: px(p.borderTopLeftRadius),
+        });
+      };
 
       const runStyle = (el, st) => ({
         size: px(st.fontSize),
-        bold: st.fontWeight === 'bold' || (parseInt(st.fontWeight, 10) || 400) >= 600,
-        italic: st.fontStyle === 'italic' || st.fontStyle === 'oblique',
-        underline: st.textDecorationLine.includes('underline'),
-        strike: st.textDecorationLine.includes('line-through'),
-        color: (hex(st.color) || { hex: '000000' }).hex,
+        bold: st.fontWeight === "bold" || (parseInt(st.fontWeight, 10) || 400) >= 600,
+        italic: st.fontStyle === "italic" || st.fontStyle === "oblique",
+        underline: st.textDecorationLine.includes("underline"),
+        strike: st.textDecorationLine.includes("line-through"),
+        color: (hex(st.color) || { hex: "000000" }).hex,
         spacing: px(st.letterSpacing),
         font: fontOf(st.fontFamily),
         transform: st.textTransform,
-        collapse: !String(st.whiteSpace).startsWith('pre'),
-      })
+        collapse: !String(st.whiteSpace).startsWith("pre"),
+      });
 
       const makeRun = (text, st) => {
-        const s = runStyle(null, st)
-        let value = s.collapse ? text.replace(/\s+/g, ' ') : text
-        value = applyTransform(value, s.transform)
-        return { text: value, ...s }
-      }
+        const s = runStyle(null, st);
+        let value = s.collapse ? text.replace(/\s+/g, " ") : text;
+        value = applyTransform(value, s.transform);
+        return { text: value, ...s };
+      };
 
-      const collectRuns = el => {
-        const runs = []
-        const eaten = []
-        const used = []
+      const collectRuns = (el) => {
+        const runs = [];
+        const eaten = [];
+        const used = [];
         for (const node of el.childNodes) {
           if (node.nodeType === 3) {
-            if (!node.textContent.trim() && !runs.length) continue
-            runs.push(makeRun(node.textContent, style(el)))
-            used.push(node)
-            continue
+            if (!node.textContent.trim() && !runs.length) continue;
+            runs.push(makeRun(node.textContent, style(el)));
+            used.push(node);
+            continue;
           }
-          if (node.nodeType !== 1) continue
-          const tag = node.tagName.toLowerCase()
-          if (tag === 'br') { runs.push({ br: true }); continue }
-          if (tag === 'style' || tag === 'script') continue
-          if (rasterRoots.has(node) || spunBoxes.has(node)) continue
-          const nst = style(node)
-          if (nst.display === 'none' || nst.visibility === 'hidden') continue
-          if (!nst.display.startsWith('inline')) continue
-          if (node.querySelector('div,p,section,ul,ol,li,table,h1,h2,h3,h4,h5,h6,svg,img')) continue
-          if (!node.textContent.trim()) continue
-          runs.push(makeRun(node.textContent, nst))
-          used.push(node)
-          eaten.push(node, ...node.querySelectorAll('*'))
+          if (node.nodeType !== 1) continue;
+          const tag = node.tagName.toLowerCase();
+          if (tag === "br") {
+            runs.push({ br: true });
+            continue;
+          }
+          if (tag === "style" || tag === "script") continue;
+          if (rasterRoots.has(node) || spunBoxes.has(node)) continue;
+          const nst = style(node);
+          if (nst.display === "none" || nst.visibility === "hidden") continue;
+          if (!nst.display.startsWith("inline")) continue;
+          if (node.querySelector("div,p,section,ul,ol,li,table,h1,h2,h3,h4,h5,h6,svg,img"))
+            continue;
+          if (!node.textContent.trim()) continue;
+          runs.push(makeRun(node.textContent, nst));
+          used.push(node);
+          eaten.push(node, ...node.querySelectorAll("*"));
         }
-        if (!runs.some(rn => rn.text && rn.text.trim())) return null
-        return { runs, eaten, used }
-      }
+        if (!runs.some((rn) => rn.text && rn.text.trim())) return null;
+        return { runs, eaten, used };
+      };
 
-      const directText = el => {
-        for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true
-        return false
-      }
+      const directText = (el) => {
+        for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true;
+        return false;
+      };
 
       for (const el of walkAll(slideEl)) {
-        const tag = el.tagName.toLowerCase()
-        if (tag === 'style' || tag === 'script' || tag === 'br') continue
-        if (insideRaster(el)) continue
-        const st = style(el)
-        if (st.display === 'none' || st.visibility === 'hidden' || px(st.opacity) === 0) continue
-        const r = el.getBoundingClientRect()
-        if (r.width < 1 || r.height < 1) continue
+        const tag = el.tagName.toLowerCase();
+        if (tag === "style" || tag === "script" || tag === "br") continue;
+        if (insideRaster(el)) continue;
+        const st = style(el);
+        if (st.display === "none" || st.visibility === "hidden" || px(st.opacity) === 0) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) continue;
 
         if (rasterRoots.has(el)) {
-          const kind = rasterRoots.get(el)
-          const hasText = tag === 'svg' && el.querySelector('text')
-          addCapture(el, kind, r, { hideText: !!hasText })
-          if (hasText) collectSvgText(el, r)
-          continue
+          const kind = rasterRoots.get(el);
+          const hasText = tag === "svg" && el.querySelector("text");
+          addCapture(el, kind, r, { hideText: !!hasText });
+          if (hasText) collectSvgText(el, r);
+          continue;
         }
 
-        const spun = spunBoxes.get(el)
+        const spun = spunBoxes.get(el);
         const geom = spun
           ? {
               x: (r.left + r.right) / 2 - ox - (el.offsetWidth || r.width) / 2,
               y: (r.top + r.bottom) / 2 - oy - (el.offsetHeight || r.height) / 2,
-              w: el.offsetWidth || r.width, h: el.offsetHeight || r.height, rot: spun,
+              w: el.offsetWidth || r.width,
+              h: el.offsetHeight || r.height,
+              rot: spun,
             }
-          : { x: r.left - ox, y: r.top - oy, w: r.width, h: r.height, rot: 0 }
+          : { x: r.left - ox, y: r.top - oy, w: r.width, h: r.height, rot: 0 };
 
         if (el !== slideEl) {
-          pushBoxesFor(el, st, r, geom)
-          pushPseudo(el, r, '::before')
-          pushPseudo(el, r, '::after')
+          pushBoxesFor(el, st, r, geom);
+          pushPseudo(el, r, "::before");
+          pushPseudo(el, r, "::after");
         } else {
-          pushPseudo(el, r, '::before')
-          pushPseudo(el, r, '::after')
+          pushPseudo(el, r, "::before");
+          pushPseudo(el, r, "::after");
         }
 
-        if (tag === 'img') {
-          const src = el.getAttribute('src') || ''
+        if (tag === "img") {
+          const src = el.getAttribute("src") || "";
           images.push({
-            id: `img-${si}-${captureSeq++}`, kind: 'img', src,
-            x: r.left - ox, y: r.top - oy, w: r.width, h: r.height,
-          })
-          continue
+            id: `img-${si}-${captureSeq++}`,
+            kind: "img",
+            src,
+            x: r.left - ox,
+            y: r.top - oy,
+            w: r.width,
+            h: r.height,
+          });
+          continue;
         }
 
-        if (consumed.has(el) || !directText(el)) continue
-        const collected = collectRuns(el)
-        if (!collected) continue
-        const ink = unionRect(collected.used)
-        if (ink.width < 1 || ink.height < 1) continue
-        for (const node of collected.eaten) consumed.add(node)
+        if (consumed.has(el) || !directText(el)) continue;
+        const collected = collectRuns(el);
+        if (!collected) continue;
+        const ink = unionRect(collected.used);
+        if (ink.width < 1 || ink.height < 1) continue;
+        for (const node of collected.eaten) consumed.add(node);
 
-        const lh = px(st.lineHeight) || px(st.fontSize) * 1.2
-        const lines = Math.max(1, Math.round(ink.height / Math.max(1, lh)))
-        const padL = px(st.borderLeftWidth) + px(st.paddingLeft)
-        const padR = px(st.borderRightWidth) + px(st.paddingRight)
-        const boxX = lines > 1 ? r.left + padL : ink.left
-        const boxW = lines > 1 ? Math.max(ink.width, r.width - padL - padR) : ink.width
+        const lh = px(st.lineHeight) || px(st.fontSize) * 1.2;
+        const lines = Math.max(1, Math.round(ink.height / Math.max(1, lh)));
+        const padL = px(st.borderLeftWidth) + px(st.paddingLeft);
+        const padR = px(st.borderRightWidth) + px(st.paddingRight);
+        const boxX = lines > 1 ? r.left + padL : ink.left;
+        const boxW = lines > 1 ? Math.max(ink.width, r.width - padL - padR) : ink.width;
         texts.push({
-          x: boxX - ox, y: ink.top - oy, w: boxW, h: ink.height,
-          align: st.textAlign, lh, lines,
-          runs: collected.runs.filter(rn => rn.br || rn.text.trim() !== ''),
-        })
+          x: boxX - ox,
+          y: ink.top - oy,
+          w: boxW,
+          h: ink.height,
+          align: st.textAlign,
+          lh,
+          lines,
+          runs: collected.runs.filter((rn) => rn.br || rn.text.trim() !== ""),
+        });
       }
 
       function collectSvgText(svg, sr) {
-        const vb = (svg.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number)
-        const scale = vb.length === 4 && vb[2] ? sr.width / vb[2] : 1
-        for (const node of svg.querySelectorAll('text')) {
-          const tr = node.getBoundingClientRect()
-          if (tr.width < 1 || tr.height < 1) continue
-          const tst = style(node)
-          const anchor = node.getAttribute('text-anchor') || tst.textAnchor || 'start'
-          const size = px(tst.fontSize) * scale
-          const weight = node.getAttribute('font-weight') || tst.fontWeight
+        const vb = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
+        const scale = vb.length === 4 && vb[2] ? sr.width / vb[2] : 1;
+        for (const node of svg.querySelectorAll("text")) {
+          const tr = node.getBoundingClientRect();
+          if (tr.width < 1 || tr.height < 1) continue;
+          const tst = style(node);
+          const anchor = node.getAttribute("text-anchor") || tst.textAnchor || "start";
+          const size = px(tst.fontSize) * scale;
+          const weight = node.getAttribute("font-weight") || tst.fontWeight;
           texts.push({
-            x: tr.left - ox, y: tr.top - oy, w: tr.width, h: tr.height,
-            align: anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left',
-            lh: size * 1.2, lines: 1, svgText: true,
-            runs: [{
-              text: node.textContent.replace(/\s+/g, ' ').trim(),
-              size,
-              bold: weight === 'bold' || (parseInt(weight, 10) || 400) >= 600,
-              italic: false, underline: false, strike: false,
-              color: (hex(tst.fill) || hex(tst.color) || { hex: '000000' }).hex,
-              spacing: 0, font: fontOf(tst.fontFamily),
-            }],
-          })
+            x: tr.left - ox,
+            y: tr.top - oy,
+            w: tr.width,
+            h: tr.height,
+            align: anchor === "middle" ? "center" : anchor === "end" ? "right" : "left",
+            lh: size * 1.2,
+            lines: 1,
+            svgText: true,
+            runs: [
+              {
+                text: node.textContent.replace(/\s+/g, " ").trim(),
+                size,
+                bold: weight === "bold" || (parseInt(weight, 10) || 400) >= 600,
+                italic: false,
+                underline: false,
+                strike: false,
+                color: (hex(tst.fill) || hex(tst.color) || { hex: "000000" }).hex,
+                spacing: 0,
+                font: fontOf(tst.fontFamily),
+              },
+            ],
+          });
         }
       }
 
-      const aspect = S.height * epx
+      const aspect = S.height * epx;
       if (Math.abs(aspect - SLIDE_H_EMU) > SLIDE_H_EMU * 0.02) {
-        warn('aspect', `Слайд ${si + 1} не 16:9 — сверху и снизу останутся поля.`,
-          'Делай слайды строго 16:9 (например 1160×652).', si)
+        warn(
+          "aspect",
+          `Слайд ${si + 1} не 16:9 — сверху и снизу останутся поля.`,
+          "Делай слайды строго 16:9 (например 1160×652).",
+          si,
+        );
       }
 
-      const slideStyle = style(slideEl)
-      const slideBg = hex(slideStyle.backgroundColor)
+      const slideStyle = style(slideEl);
+      const slideBg = hex(slideStyle.backgroundColor);
 
       slides.push({
-        index: si, w: S.width, h: S.height,
+        index: si,
+        w: S.width,
+        h: S.height,
         background: slideBg && slideBg.alpha > 0.9 ? slideBg.hex : null,
-        boxes, texts, images, captures,
+        boxes,
+        texts,
+        images,
+        captures,
         offsetY: Math.max(0, (SLIDE_H_EMU / epx - S.height) / 2),
-      })
-    })
+      });
+    });
 
-    return { epx, slideW: first.width, slideH: first.height, slides, warnings }
+    return { epx, slideW: first.width, slideH: first.height, slides, warnings };
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.extract = extract
-  window.MPGA.EMU = { W: SLIDE_W_EMU, H: SLIDE_H_EMU }
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.extract = extract;
+  window.MPGA.EMU = { W: SLIDE_W_EMU, H: SLIDE_H_EMU };
+})();
 
 </script>
 <script>
 (() => {
-  const SVG_NS = 'http://www.w3.org/2000/svg'
-  const XHTML_NS = 'http://www.w3.org/1999/xhtml'
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const XHTML_NS = "http://www.w3.org/1999/xhtml";
 
   const SVG_PROPS = [
-    'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity',
-    'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray', 'stroke-dashoffset',
-    'opacity', 'color', 'display', 'visibility', 'font-family', 'font-size',
-    'font-weight', 'font-style', 'text-anchor', 'letter-spacing', 'paint-order',
-  ]
+    "fill",
+    "fill-opacity",
+    "fill-rule",
+    "stroke",
+    "stroke-width",
+    "stroke-opacity",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "opacity",
+    "color",
+    "display",
+    "visibility",
+    "font-family",
+    "font-size",
+    "font-weight",
+    "font-style",
+    "text-anchor",
+    "letter-spacing",
+    "paint-order",
+  ];
 
   function bakeSvg(win, src, clone) {
-    const pairs = [[src, clone]]
-    const srcNodes = src.querySelectorAll('*')
-    const cloneNodes = clone.querySelectorAll('*')
+    const pairs = [[src, clone]];
+    const srcNodes = src.querySelectorAll("*");
+    const cloneNodes = clone.querySelectorAll("*");
     for (let i = 0; i < srcNodes.length && i < cloneNodes.length; i++) {
-      pairs.push([srcNodes[i], cloneNodes[i]])
+      pairs.push([srcNodes[i], cloneNodes[i]]);
     }
     for (const [a, b] of pairs) {
-      const st = win.getComputedStyle(a)
-      let css = ''
+      const st = win.getComputedStyle(a);
+      let css = "";
       for (const prop of SVG_PROPS) {
-        const value = st.getPropertyValue(prop)
-        if (value && value !== 'auto') css += `${prop}:${value};`
+        const value = st.getPropertyValue(prop);
+        if (value && value !== "auto") css += `${prop}:${value};`;
       }
-      b.setAttribute('style', css)
+      b.setAttribute("style", css);
     }
   }
 
   function bakeDom(win, src, clone) {
-    const pairs = [[src, clone]]
-    const srcNodes = src.querySelectorAll('*')
-    const cloneNodes = clone.querySelectorAll('*')
+    const pairs = [[src, clone]];
+    const srcNodes = src.querySelectorAll("*");
+    const cloneNodes = clone.querySelectorAll("*");
     for (let i = 0; i < srcNodes.length && i < cloneNodes.length; i++) {
-      pairs.push([srcNodes[i], cloneNodes[i]])
+      pairs.push([srcNodes[i], cloneNodes[i]]);
     }
     for (const [a, b] of pairs) {
-      if (b.nodeName === 'SCRIPT' || b.nodeName === 'STYLE') { b.remove(); continue }
-      const st = win.getComputedStyle(a)
-      let css = ''
-      for (let i = 0; i < st.length; i++) {
-        const prop = st[i]
-        css += `${prop}:${st.getPropertyValue(prop)};`
+      if (b.nodeName === "SCRIPT" || b.nodeName === "STYLE") {
+        b.remove();
+        continue;
       }
-      b.setAttribute('style', css)
+      const st = win.getComputedStyle(a);
+      let css = "";
+      for (let i = 0; i < st.length; i++) {
+        const prop = st[i];
+        css += `${prop}:${st.getPropertyValue(prop)};`;
+      }
+      b.setAttribute("style", css);
     }
   }
 
   function svgToUrl(markup) {
-    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup)
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(markup);
   }
 
   function drawToPng(url, w, h, scale) {
     return new Promise((resolve, reject) => {
-      const img = new Image()
+      const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.max(1, Math.round(w * scale))
-        canvas.height = Math.max(1, Math.round(h * scale))
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        let empty = true
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        let empty = true;
         try {
-          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data
-          for (let i = 3; i < data.length; i += 4) { if (data[i] > 8) { empty = false; break } }
-          resolve({ url: canvas.toDataURL('image/png'), empty })
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 8) {
+              empty = false;
+              break;
+            }
+          }
+          resolve({ url: canvas.toDataURL("image/png"), empty });
         } catch (err) {
-          resolve({ url: null, empty: true, error: String(err) })
+          resolve({ url: null, empty: true, error: String(err) });
         }
-      }
-      img.onerror = () => reject(new Error('не удалось нарисовать картинку'))
-      img.src = url
-    })
+      };
+      img.onerror = () => reject(new Error("не удалось нарисовать картинку"));
+      img.src = url;
+    });
   }
 
   async function captureSvg(win, el, rect, hideText, scale) {
-    const clone = el.cloneNode(true)
-    bakeSvg(win, el, clone)
+    const clone = el.cloneNode(true);
+    bakeSvg(win, el, clone);
     if (hideText) {
-      for (const node of clone.querySelectorAll('text')) node.setAttribute('style', 'display:none')
+      for (const node of clone.querySelectorAll("text")) node.setAttribute("style", "display:none");
     }
-    clone.setAttribute('xmlns', SVG_NS)
-    clone.setAttribute('width', rect.width)
-    clone.setAttribute('height', rect.height)
-    if (!clone.getAttribute('viewBox')) {
-      const box = el.getBBox ? el.getBBox() : null
-      if (box) clone.setAttribute('viewBox', `0 0 ${Math.max(1, box.width + box.x)} ${Math.max(1, box.height + box.y)}`)
+    clone.setAttribute("xmlns", SVG_NS);
+    clone.setAttribute("width", rect.width);
+    clone.setAttribute("height", rect.height);
+    if (!clone.getAttribute("viewBox")) {
+      const box = el.getBBox ? el.getBBox() : null;
+      if (box)
+        clone.setAttribute(
+          "viewBox",
+          `0 0 ${Math.max(1, box.width + box.x)} ${Math.max(1, box.height + box.y)}`,
+        );
     }
-    const markup = new XMLSerializer().serializeToString(clone)
-    return drawToPng(svgToUrl(markup), rect.width, rect.height, scale)
+    const markup = new XMLSerializer().serializeToString(clone);
+    return drawToPng(svgToUrl(markup), rect.width, rect.height, scale);
   }
 
   async function captureDom(win, el, rect, selfOnly, scale) {
-    const clone = el.cloneNode(true)
-    bakeDom(win, el, clone)
+    const clone = el.cloneNode(true);
+    bakeDom(win, el, clone);
     if (selfOnly) {
-      for (const node of clone.querySelectorAll('*')) {
-        node.setAttribute('style', `${node.getAttribute('style') || ''};visibility:hidden`)
+      for (const node of clone.querySelectorAll("*")) {
+        node.setAttribute("style", `${node.getAttribute("style") || ""};visibility:hidden`);
       }
     }
-    clone.setAttribute('style',
-      `${clone.getAttribute('style') || ''};margin:0;transform:none;position:static;` +
-      `width:${rect.width}px;height:${rect.height}px;box-sizing:border-box`)
-    const holder = document.createElementNS(XHTML_NS, 'div')
-    holder.setAttribute('xmlns', XHTML_NS)
-    holder.appendChild(clone)
+    clone.setAttribute(
+      "style",
+      `${clone.getAttribute("style") || ""};margin:0;transform:none;position:static;` +
+        `width:${rect.width}px;height:${rect.height}px;box-sizing:border-box`,
+    );
+    const holder = document.createElementNS(XHTML_NS, "div");
+    holder.setAttribute("xmlns", XHTML_NS);
+    holder.appendChild(clone);
     const markup =
       `<svg xmlns="${SVG_NS}" width="${rect.width}" height="${rect.height}">` +
       `<foreignObject x="0" y="0" width="${rect.width}" height="${rect.height}">` +
       new XMLSerializer().serializeToString(holder) +
-      '</foreignObject></svg>'
-    return drawToPng(svgToUrl(markup), rect.width, rect.height, scale)
+      "</foreignObject></svg>";
+    return drawToPng(svgToUrl(markup), rect.width, rect.height, scale);
   }
 
   async function captureAll(win, ir, options = {}) {
-    const scale = options.scale || 2
-    const shots = {}
-    const notes = []
+    const scale = options.scale || 2;
+    const shots = {};
+    const notes = [];
     for (const slide of ir.slides) {
       for (const cap of slide.captures) {
-        const el = win.document.querySelector(`[data-mpga-cap="${cap.id}"]`)
-        if (!el) continue
-        let rect = el.getBoundingClientRect()
-        if (cap.kind === 'transform' && el.offsetWidth) {
-          rect = { width: el.offsetWidth, height: el.offsetHeight }
+        const el = win.document.querySelector(`[data-mpga-cap="${cap.id}"]`);
+        if (!el) continue;
+        let rect = el.getBoundingClientRect();
+        if (cap.kind === "transform" && el.offsetWidth) {
+          rect = { width: el.offsetWidth, height: el.offsetHeight };
         }
         try {
-          const isSvg = el.tagName.toLowerCase() === 'svg'
+          const isSvg = el.tagName.toLowerCase() === "svg";
           const shot = isSvg
             ? await captureSvg(win, el, rect, cap.hideText, scale)
-            : await captureDom(win, el, rect, cap.selfOnly, scale)
-          if (shot.url && !shot.empty) shots[cap.id] = shot.url
-          else notes.push({ code: 'empty-raster', level: 'warn', slide: slide.index,
-            text: `Слайд ${slide.index + 1}: часть графики не удалось перерисовать — она пропала.`,
-            fix: 'Рисуй схемы через inline SVG без внешних картинок и без фоновых изображений по ссылке.' })
+            : await captureDom(win, el, rect, cap.selfOnly, scale);
+          if (shot.url && !shot.empty) shots[cap.id] = shot.url;
+          else
+            notes.push({
+              code: "empty-raster",
+              level: "warn",
+              slide: slide.index,
+              text: `Слайд ${slide.index + 1}: часть графики не удалось перерисовать — она пропала.`,
+              fix: "Рисуй схемы через inline SVG без внешних картинок и без фоновых изображений по ссылке.",
+            });
         } catch (err) {
-          notes.push({ code: 'raster-failed', level: 'warn', slide: slide.index,
-            text: `Слайд ${slide.index + 1}: не получилось перерисовать графику (${err.message}).` })
+          notes.push({
+            code: "raster-failed",
+            level: "warn",
+            slide: slide.index,
+            text: `Слайд ${slide.index + 1}: не получилось перерисовать графику (${err.message}).`,
+          });
         }
       }
-      slide.images = slide.images.filter(im => im.kind === 'img' || shots[im.id])
-      for (const im of slide.images) if (shots[im.id]) im.data = shots[im.id]
+      slide.images = slide.images.filter((im) => im.kind === "img" || shots[im.id]);
+      for (const im of slide.images) if (shots[im.id]) im.data = shots[im.id];
     }
-    return { shots, notes }
+    return { shots, notes };
   }
 
   async function resolveImages(ir) {
-    const notes = []
+    const notes = [];
     for (const slide of ir.slides) {
       for (const im of slide.images) {
-        if (im.kind !== 'img') continue
-        if (/^data:/i.test(im.src)) { im.data = im.src; continue }
+        if (im.kind !== "img") continue;
+        if (/^data:/i.test(im.src)) {
+          im.data = im.src;
+          continue;
+        }
         try {
-          const res = await fetch(im.src, { mode: 'cors' })
-          const blob = await res.blob()
-          im.data = await new Promise(resolve => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result)
-            reader.readAsDataURL(blob)
-          })
-        } catch (err) {
-          im.missing = true
-          notes.push({ code: 'image-unreachable', level: 'warn', slide: slide.index,
+          const res = await fetch(im.src, { mode: "cors" });
+          const blob = await res.blob();
+          im.data = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          im.missing = true;
+          notes.push({
+            code: "image-unreachable",
+            level: "warn",
+            slide: slide.index,
             text: `Слайд ${slide.index + 1}: картинку по ссылке вставить не удалось, на её месте будет пустая рамка.`,
-            fix: 'Не вставляй картинки по ссылке из интернета — браузер не даёт их прочитать. ' +
-                 'Используй иконки или нарисуй иллюстрацию через inline SVG.' })
+            fix:
+              "Не вставляй картинки по ссылке из интернета — браузер не даёт их прочитать. " +
+              "Используй иконки или нарисуй иллюстрацию через inline SVG.",
+          });
         }
       }
-      slide.images = slide.images.filter(im => im.kind !== 'img' || im.data || im.missing)
+      slide.images = slide.images.filter((im) => im.kind !== "img" || im.data || im.missing);
     }
-    return notes
+    return notes;
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.captureAll = captureAll
-  window.MPGA.resolveImages = resolveImages
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.captureAll = captureAll;
+  window.MPGA.resolveImages = resolveImages;
+})();
 
 </script>
 <script>
 (() => {
-  const FIX_HEADER = 'В презентации, которую ты сделал(а), есть проблемы для переноса в PowerPoint. Исправь их и пришли HTML целиком:\n'
+  const FIX_HEADER =
+    "В презентации, которую ты сделал(а), есть проблемы для переноса в PowerPoint. Исправь их и пришли HTML целиком:\n";
 
   function check(ir, notes = []) {
-    const out = [...notes, ...(ir.warnings || [])]
+    const out = [...notes, ...(ir.warnings || [])];
     const push = (code, level, text, fix, slide) => {
-      const same = out.find(w => w.code === code && w.slide === slide)
-      if (same) { same.count = (same.count || 1) + 1; return }
-      out.push({ code, level, text, fix, slide, count: 1 })
-    }
+      const same = out.find((w) => w.code === code && w.slide === slide);
+      if (same) {
+        same.count = (same.count || 1) + 1;
+        return;
+      }
+      out.push({ code, level, text, fix, slide, count: 1 });
+    };
 
     if (!ir.slides || !ir.slides.length) {
-      push('no-slides', 'error',
-        'В файле не нашлось слайдов.',
-        'Каждый слайд должен быть отдельным блоком <section class="slide">.')
-      return sort(out)
+      push(
+        "no-slides",
+        "error",
+        "В файле не нашлось слайдов.",
+        'Каждый слайд должен быть отдельным блоком <section class="slide">.',
+      );
+      return sort(out);
     }
 
-    ir.slides.forEach(slide => {
-      const objects = slide.boxes.length + slide.texts.length + slide.images.length
+    ir.slides.forEach((slide) => {
+      const objects = slide.boxes.length + slide.texts.length + slide.images.length;
       if (objects < 2) {
-        push('empty-slide', 'warn', `Слайд ${slide.index + 1} получился пустым.`,
-          'Проверь, что содержимое слайда лежит внутри <section class="slide">.', slide.index)
+        push(
+          "empty-slide",
+          "warn",
+          `Слайд ${slide.index + 1} получился пустым.`,
+          'Проверь, что содержимое слайда лежит внутри <section class="slide">.',
+          slide.index,
+        );
       }
       if (objects > 400) {
-        push('heavy-slide', 'info', `Слайд ${slide.index + 1} очень насыщенный (${objects} объектов) — PowerPoint может тормозить.`,
-          null, slide.index)
+        push(
+          "heavy-slide",
+          "info",
+          `Слайд ${slide.index + 1} очень насыщенный (${objects} объектов) — PowerPoint может тормозить.`,
+          null,
+          slide.index,
+        );
       }
       for (const text of slide.texts) {
         if (text.x + text.w > slide.w + 2 || text.x < -2) {
-          push('text-overflow', 'warn',
+          push(
+            "text-overflow",
+            "warn",
             `Слайд ${slide.index + 1}: текст выходит за край слайда и обрежется.`,
-            'Сделай так, чтобы весь текст помещался внутри слайда — уменьши шрифт или сократи подпись.',
-            slide.index)
-          break
+            "Сделай так, чтобы весь текст помещался внутри слайда — уменьши шрифт или сократи подпись.",
+            slide.index,
+          );
+          break;
         }
       }
-    })
+    });
 
-    const totalText = ir.slides.reduce((n, s) => n + s.texts.length, 0)
+    const totalText = ir.slides.reduce((n, s) => n + s.texts.length, 0);
     if (!totalText) {
-      push('no-text', 'error', 'В презентации не нашлось ни одного текста.',
-        'Пиши текст обычными тегами (h1, h2, p, b, span), а не рисуй его картинкой.')
+      push(
+        "no-text",
+        "error",
+        "В презентации не нашлось ни одного текста.",
+        "Пиши текст обычными тегами (h1, h2, p, b, span), а не рисуй его картинкой.",
+      );
     }
 
-    return sort(out)
+    return sort(out);
   }
 
   function sort(list) {
-    const rank = { error: 0, warn: 1, info: 2 }
-    return list.slice().sort((a, b) => (rank[a.level] ?? 3) - (rank[b.level] ?? 3))
+    const rank = { error: 0, warn: 1, info: 2 };
+    return list.slice().sort((a, b) => (rank[a.level] ?? 3) - (rank[b.level] ?? 3));
   }
 
   function fixMessage(list) {
-    const fixes = [...new Set(list.filter(w => w.fix).map(w => w.fix))]
-    if (!fixes.length) return null
-    return FIX_HEADER + fixes.map((f, i) => `${i + 1}. ${f}`).join('\n')
+    const fixes = [...new Set(list.filter((w) => w.fix).map((w) => w.fix))];
+    if (!fixes.length) return null;
+    return FIX_HEADER + fixes.map((f, i) => `${i + 1}. ${f}`).join("\n");
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.validate = check
-  window.MPGA.fixMessage = fixMessage
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.validate = check;
+  window.MPGA.fixMessage = fixMessage;
+})();
 
 </script>
 <script>
 (() => {
-  const EMU_PER_INCH = 914400
+  const EMU_PER_INCH = 914400;
 
-  const ALIGN = { left: 'left', start: 'left', center: 'center', right: 'right', end: 'right', justify: 'justify' }
+  const ALIGN = {
+    left: "left",
+    start: "left",
+    center: "center",
+    right: "right",
+    end: "right",
+    justify: "justify",
+  };
 
   function build(ir, meta = {}) {
-    const pptx = new PptxGenJS()
-    pptx.layout = 'LAYOUT_WIDE'
-    pptx.title = meta.title || 'Презентация'
-    pptx.company = meta.app || 'MPGA'
-    pptx.author = meta.author || ''
+    const pptx = new PptxGenJS();
+    pptx.layout = "LAYOUT_WIDE";
+    pptx.title = meta.title || "Презентация";
+    pptx.company = meta.app || "MPGA";
+    pptx.author = meta.author || "";
 
-    const toIn = px => (px * ir.epx) / EMU_PER_INCH
+    const toIn = (px) => (px * ir.epx) / EMU_PER_INCH;
 
     for (const slide of ir.slides) {
-      const s = pptx.addSlide()
-      const dy = slide.offsetY || 0
-      if (slide.background) s.background = { color: slide.background }
+      const s = pptx.addSlide();
+      const dy = slide.offsetY || 0;
+      if (slide.background) s.background = { color: slide.background };
 
       for (const box of slide.boxes) {
-        const w = Math.max(0.01, toIn(box.w))
-        const h = Math.max(0.01, toIn(box.h))
-        const opts = { x: toIn(box.x), y: toIn(box.y + dy), w, h }
+        const w = Math.max(0.01, toIn(box.w));
+        const h = Math.max(0.01, toIn(box.h));
+        const opts = { x: toIn(box.x), y: toIn(box.y + dy), w, h };
 
         if (box.fill) {
-          opts.fill = { color: box.fill }
-          if (box.alpha != null && box.alpha < 1) opts.fill.transparency = Math.round((1 - box.alpha) * 100)
+          opts.fill = { color: box.fill };
+          if (box.alpha != null && box.alpha < 1)
+            opts.fill.transparency = Math.round((1 - box.alpha) * 100);
         } else {
-          opts.fill = { color: 'FFFFFF', transparency: 100 }
+          opts.fill = { color: "FFFFFF", transparency: 100 };
         }
-        if (box.stroke) opts.line = { color: box.stroke, width: Math.max(0.25, box.strokeW * 0.75) }
-        if (box.rot) opts.rotate = box.rot
+        if (box.stroke)
+          opts.line = { color: box.stroke, width: Math.max(0.25, box.strokeW * 0.75) };
+        if (box.rot) opts.rotate = box.rot;
 
-        let shape = 'rect'
-        if (box.radius === -1) shape = 'ellipse'
+        let shape = "rect";
+        if (box.radius === -1) shape = "ellipse";
         else if (box.radius > 0.5) {
-          shape = 'roundRect'
-          opts.rectRadius = Math.min(toIn(box.radius), Math.min(w, h) / 2)
+          shape = "roundRect";
+          opts.rectRadius = Math.min(toIn(box.radius), Math.min(w, h) / 2);
         }
-        s.addShape(shape, opts)
+        s.addShape(shape, opts);
       }
 
       for (const image of slide.images) {
         const opts = {
-          x: toIn(image.x), y: toIn(image.y + dy),
-          w: Math.max(0.01, toIn(image.w)), h: Math.max(0.01, toIn(image.h)),
-        }
-        if (image.rot) opts.rotate = image.rot
-        if (image.data) s.addImage({ data: image.data, ...opts })
-        else s.addShape('rect', { ...opts, fill: { color: 'F2F2F2' }, line: { color: 'BFBFBF', width: 1 } })
+          x: toIn(image.x),
+          y: toIn(image.y + dy),
+          w: Math.max(0.01, toIn(image.w)),
+          h: Math.max(0.01, toIn(image.h)),
+        };
+        if (image.rot) opts.rotate = image.rot;
+        if (image.data) s.addImage({ data: image.data, ...opts });
+        else
+          s.addShape("rect", {
+            ...opts,
+            fill: { color: "F2F2F2" },
+            line: { color: "BFBFBF", width: 1 },
+          });
       }
 
       for (const text of slide.texts) {
-        const runs = text.runs || []
-        if (!runs.length) continue
-        const first = runs.find(r => !r.br) || {}
-        const size = first.size || 16
-        const wrap = (text.lines || 1) > 1
-        const padX = wrap ? 2 : 8
-        const align = ALIGN[text.align] || 'left'
+        const runs = text.runs || [];
+        if (!runs.length) continue;
+        const first = runs.find((r) => !r.br) || {};
+        const size = first.size || 16;
+        const wrap = (text.lines || 1) > 1;
+        const padX = wrap ? 2 : 8;
+        const align = ALIGN[text.align] || "left";
 
-        let left = text.x - padX / 2
-        if (align === 'right') left = text.x - padX
-        if (align === 'left') left = text.x - 1
+        let left = text.x - padX / 2;
+        if (align === "right") left = text.x - padX;
+        if (align === "left") left = text.x - 1;
 
-        const items = []
+        const items = [];
         for (let i = 0; i < runs.length; i++) {
-          const run = runs[i]
+          const run = runs[i];
           if (run.br) {
-            if (items.length) items[items.length - 1].options.breakLine = true
-            continue
+            if (items.length) items[items.length - 1].options.breakLine = true;
+            continue;
           }
           items.push({
             text: run.text,
             options: {
-              fontFace: run.font || 'Arial',
+              fontFace: run.font || "Arial",
               fontSize: +(run.size * 0.75).toFixed(1),
               bold: !!run.bold,
               italic: !!run.italic,
-              underline: run.underline ? { style: 'sng' } : undefined,
-              strike: run.strike ? 'sngStrike' : undefined,
-              color: run.color || '000000',
+              underline: run.underline ? { style: "sng" } : undefined,
+              strike: run.strike ? "sngStrike" : undefined,
+              color: run.color || "000000",
               charSpacing: run.spacing > 0.1 ? +(run.spacing * 0.75).toFixed(2) : undefined,
               breakLine: false,
             },
-          })
+          });
         }
-        if (!items.length) continue
+        if (!items.length) continue;
 
         const opts = {
-          x: toIn(left), y: toIn(text.y - 1 + dy),
-          w: Math.max(0.05, toIn(text.w + padX)), h: Math.max(0.05, toIn(text.h + 2)),
-          margin: 0, valign: 'middle', align, wrap,
-          isTextBox: true, fit: 'shrink',
-          fontFace: first.font || 'Arial',
+          x: toIn(left),
+          y: toIn(text.y - 1 + dy),
+          w: Math.max(0.05, toIn(text.w + padX)),
+          h: Math.max(0.05, toIn(text.h + 2)),
+          margin: 0,
+          valign: "middle",
+          align,
+          wrap,
+          isTextBox: true,
+          fit: "shrink",
+          fontFace: first.font || "Arial",
           fontSize: +(size * 0.75).toFixed(1),
-          color: first.color || '000000',
-        }
-        const ratio = text.lh / size
-        if (ratio > 1.05 && ratio < 4) opts.lineSpacingMultiple = +ratio.toFixed(2)
-        s.addText(items, opts)
+          color: first.color || "000000",
+        };
+        const ratio = text.lh / size;
+        if (ratio > 1.05 && ratio < 4) opts.lineSpacingMultiple = +ratio.toFixed(2);
+        s.addText(items, opts);
       }
     }
 
-    return pptx
+    return pptx;
   }
 
   async function toBlob(ir, meta) {
-    const pptx = build(ir, meta)
-    return pptx.write({ outputType: 'blob' })
+    const pptx = build(ir, meta);
+    return pptx.write({ outputType: "blob" });
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.buildPptx = build
-  window.MPGA.pptxBlob = toBlob
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.buildPptx = build;
+  window.MPGA.pptxBlob = toBlob;
+})();
 
 </script>
 <script>
 (() => {
-  const FRAME_W = 1920
-  const FRAME_H = 1080
+  const FRAME_W = 1920;
+  const FRAME_H = 1080;
 
   function mountFrame(html) {
     return new Promise((resolve, reject) => {
-      const frame = document.createElement('iframe')
-      frame.setAttribute('sandbox', 'allow-same-origin allow-scripts')
-      frame.setAttribute('aria-hidden', 'true')
+      const frame = document.createElement("iframe");
+      frame.setAttribute("sandbox", "allow-same-origin allow-scripts");
+      frame.setAttribute("aria-hidden", "true");
       frame.style.cssText =
         `position:fixed;left:-20000px;top:0;width:${FRAME_W}px;height:${FRAME_H}px;border:0;` +
-        'background:#fff;visibility:visible;pointer-events:none'
-      frame.onload = () => resolve(frame)
-      frame.onerror = () => reject(new Error('не удалось открыть файл презентации'))
-      frame.srcdoc = html
-      document.body.appendChild(frame)
-    })
+        "background:#fff;visibility:visible;pointer-events:none";
+      frame.onload = () => resolve(frame);
+      frame.onerror = () => reject(new Error("не удалось открыть файл презентации"));
+      frame.srcdoc = html;
+      document.body.appendChild(frame);
+    });
   }
 
   async function settle(frame) {
-    const win = frame.contentWindow
-    const doc = win.document
-    if (!doc) throw new Error('браузер не дал прочитать содержимое файла')
-    try { await doc.fonts.ready } catch (err) { /* шрифты уже готовы */ }
-    const images = [...doc.images].filter(img => !img.complete)
+    const win = frame.contentWindow;
+    const doc = win.document;
+    if (!doc) throw new Error("браузер не дал прочитать содержимое файла");
+    try {
+      await doc.fonts.ready;
+    } catch {
+      /* шрифты уже готовы */
+    }
+    const images = [...doc.images].filter((img) => !img.complete);
     if (images.length) {
       await Promise.race([
-        Promise.all(images.map(img => new Promise(done => {
-          img.addEventListener('load', done, { once: true })
-          img.addEventListener('error', done, { once: true })
-        }))),
-        new Promise(done => win.setTimeout(done, 4000)),
-      ])
+        Promise.all(
+          images.map(
+            (img) =>
+              new Promise((done) => {
+                img.addEventListener("load", done, { once: true });
+                img.addEventListener("error", done, { once: true });
+              }),
+          ),
+        ),
+        new Promise((done) => win.setTimeout(done, 4000)),
+      ]);
     }
-    await new Promise(done => win.requestAnimationFrame(() => win.requestAnimationFrame(done)))
-    const height = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, FRAME_H)
-    frame.style.height = `${height}px`
-    await new Promise(done => win.requestAnimationFrame(() => win.requestAnimationFrame(done)))
+    await new Promise((done) => win.requestAnimationFrame(() => win.requestAnimationFrame(done)));
+    const height = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, FRAME_H);
+    frame.style.height = `${height}px`;
+    await new Promise((done) => win.requestAnimationFrame(() => win.requestAnimationFrame(done)));
   }
 
   async function convert(htmlText, options = {}) {
-    const started = Date.now()
-    window.MPGA.drainIconNotes()
-    const normalized = window.MPGA.normalize(htmlText)
+    const started = Date.now();
+    window.MPGA.drainIconNotes();
+    const normalized = window.MPGA.normalize(htmlText);
     if (!normalized.html) {
-      const err = new Error('Это не похоже на HTML-файл с презентацией.')
-      err.friendly = true
-      throw err
+      const err = new Error("Это не похоже на HTML-файл с презентацией.");
+      err.friendly = true;
+      throw err;
     }
 
-    const frame = await mountFrame(normalized.html)
-    let ir
-    let notes = [...normalized.notes]
+    const frame = await mountFrame(normalized.html);
+    let ir;
+    let notes = [...normalized.notes];
     try {
-      await settle(frame)
-      const win = frame.contentWindow
-      if (!win.document.querySelector('.mpga-slide-root')) {
-        const err = new Error('В файле не нашлось слайдов: ожидались блоки <section class="slide">.')
-        err.friendly = true
-        throw err
+      await settle(frame);
+      const win = frame.contentWindow;
+      if (!win.document.querySelector(".mpga-slide-root")) {
+        const err = new Error(
+          'В файле не нашлось слайдов: ожидались блоки <section class="slide">.',
+        );
+        err.friendly = true;
+        throw err;
       }
-      window.MPGA.paintIcons(win)
-      notes = notes.concat(window.MPGA.drainIconNotes())
-      await new Promise(done => win.requestAnimationFrame(() => win.requestAnimationFrame(done)))
-      ir = window.MPGA.extract(win, options)
-      notes = notes.concat(await window.MPGA.resolveImages(ir))
-      const captured = await window.MPGA.captureAll(win, ir, options)
-      notes = notes.concat(captured.notes)
-      ir.title = (win.document.title || '').trim()
+      window.MPGA.paintIcons(win);
+      notes = notes.concat(window.MPGA.drainIconNotes());
+      await new Promise((done) => win.requestAnimationFrame(() => win.requestAnimationFrame(done)));
+      ir = window.MPGA.extract(win, options);
+      notes = notes.concat(await window.MPGA.resolveImages(ir));
+      const captured = await window.MPGA.captureAll(win, ir, options);
+      notes = notes.concat(captured.notes);
+      ir.title = (win.document.title || "").trim();
     } finally {
-      if (!options.keepFrame) frame.remove()
-      else options.onFrame && options.onFrame(frame)
+      if (options.keepFrame) {
+        if (options.onFrame) options.onFrame(frame);
+      } else {
+        frame.remove();
+      }
     }
 
-    const warnings = window.MPGA.validate(ir, notes)
-    ir.ms = Date.now() - started
-    return { ir, warnings, slideSelector: normalized.slideSelector }
+    const warnings = window.MPGA.validate(ir, notes);
+    ir.ms = Date.now() - started;
+    return { ir, warnings, slideSelector: normalized.slideSelector };
   }
 
-  window.MPGA = window.MPGA || {}
-  window.MPGA.convert = convert
-})()
+  window.MPGA = window.MPGA || {};
+  window.MPGA.convert = convert;
+})();
 
 </script>
 <script>
-window.MPGA_BUILD = {"version":"0.1.0","date":"2026-09-11"};
+window.MPGA_BUILD = {"version":"0.1.0","date":"2026-09-12"};
 window.MPGA_PROMPT = "Сделай презентацию на тему: «ВПИШИТЕ ТЕМУ». Количество слайдов: 10.\n\nОтвет дай одним HTML-файлом целиком, без пояснений до и после кода.\nФайл будет превращён в PowerPoint автоматической программой, поэтому строго\nсоблюдай правила ниже — иначе слайды поедут.\n\nПРАВИЛА ФАЙЛА\n1. Один файл: <!doctype html>, весь CSS внутри одного тега <style> в <head>.\n2. Первой строкой в <head> добавь: <meta name=\"mpga-contract\" content=\"1\">\n3. Ничего не подключай из интернета: ни шрифтов, ни библиотек, ни картинок по\n   ссылке. Никаких <script src=...>, <link rel=stylesheet href=...>, <img src=\"http...\">.\n4. Шрифт только такой: font-family: Arial, sans-serif.\n\nСЛАЙДЫ\n5. Каждый слайд — <section class=\"slide\">. Ровно 10 штук подряд, без обёрток\n   вокруг них, кроме одного общего <main>.\n6. Размер слайда задай один раз в CSS:\n   .slide{width:1160px;height:652.5px;position:relative;overflow:hidden;\n   background:#fff;margin:0 auto 24px;padding:44px 62px;box-sizing:border-box}\n   Не используй vw, vh, %, min(), max(), calc() от ширины окна и медиазапросы:\n   размер слайда должен быть постоянным.\n7. Всё содержимое слайда должно помещаться внутрь этих 1160×652.5 с запасом.\n   Не рассчитывай на прокрутку.\n\nЧТО МОЖНО\n8. Текст: h1, h2, p, b, span, small, li. Выделение — <b> внутри абзаца.\n9. Раскладка: display:flex и display:grid, position:absolute внутри слайда.\n10. Фигуры: обычные div с background, border, border-radius.\n11. Иконки: <i data-lucide=\"имя\"></i> — названия из набора lucide\n    (globe, database, library, search, file-text, users, book-open, check,\n    lightbulb, target, settings, chart-line и другие). Ничего подключать не надо.\n12. Схемы и диаграммы: inline <svg viewBox=\"0 0 900 290\"> прямо в слайде.\n    Подписи внутри схемы делай тегом <text> — они останутся редактируемыми.\n\nЧЕГО НЕЛЬЗЯ\n13. Градиенты (linear-gradient), тени (box-shadow), полупрозрачность (rgba с\n    альфой, opacity), фильтры, анимации — их PowerPoint не получит.\n14. transform: rotate/scale у блоков с текстом.\n15. Картинки-фотографии. Иллюстрируй иконками и схемами.\n16. Таблицы через <table> — вместо них сетка из div.\n\nТЕКСТ\n17. Короткие подписи (в карточках, на схемах) пиши так, чтобы они помещались в\n    одну строку своей ширины. Лучше 2–3 слова.\n18. Длинные абзацы — только в широких блоках на всю ширину слайда.\n19. Язык — русский. Никакой латиницы кроме названий и терминов.\n\nСОДЕРЖАНИЕ\n20. Слайд 1 — титульный: тема, подзаголовок, автор.\n21. Слайды 2–9 — раскрытие темы: определения, классификации, схема процесса,\n    примеры, сравнение, выводы. Разнообразь: где-то сетка карточек, где-то\n    список, где-то схема.\n22. Слайд 10 — заключение.\n23. На каждом слайде: короткий заголовок (h2) и не больше 60 слов текста.";
 window.MPGA_DEMO = "<!doctype html>\n<html lang=\"ru\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"mpga-contract\" content=\"1\">\n<title>Как работает поиск в интернете</title>\n<style>\n*{box-sizing:border-box}\nbody{margin:0;background:#eef0f2;font-family:Arial,sans-serif;color:#1b2030}\n.slide{width:1160px;height:652.5px;position:relative;overflow:hidden;background:#fff;\n       margin:0 auto 24px;padding:48px 64px;border:1px solid #dcdfe3}\n.slide::before{content:\"\";position:absolute;left:0;top:0;bottom:0;width:8px;background:#254c6e}\n.ey{font-size:11px;font-weight:bold;letter-spacing:.14em;color:#254c6e;text-transform:uppercase;margin-bottom:12px}\nh1{font-size:52px;line-height:1.04;margin:0 0 16px}\nh2{font-size:34px;line-height:1.1;margin:0 0 20px}\np{font-size:17px;line-height:1.45;color:#4a5262;margin:0 0 12px}\n.lead{background:#f5f7fa;border-left:5px solid #254c6e;padding:14px 20px;font-size:15px;color:#4a5262}\n.num{position:absolute;right:32px;bottom:20px;font-size:11px;color:#8b93a1}\n.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}\n.card{background:#f7f9fb;border:1px solid #dbe2e9;padding:22px;height:170px;display:flex;\n      flex-direction:column;align-items:center;justify-content:center;text-align:center}\n.card i{width:26px;height:26px;color:#254c6e;margin-bottom:12px;stroke-width:1.8}\n.card b{font-size:17px}\n.card small{display:block;color:#6b7481;font-size:13px;line-height:1.35;margin-top:8px}\n.author{position:absolute;left:64px;bottom:48px;font-size:14px;color:#6b7481}\n.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}\n.step-item{border:1px solid #dbe2e9;background:#f7f9fb;padding:16px 18px}\n.step-item b{font-size:16px;color:#254c6e}\n.step-item span{display:block;font-size:13px;color:#6b7481;margin-top:5px;line-height:1.35}\n</style>\n</head>\n<body>\n<main>\n\n<section class=\"slide\">\n  <div class=\"ey\">Учебная презентация</div>\n  <h1>Как работает поиск<br>в интернете</h1>\n  <p style=\"font-size:20px;max-width:760px\">От запроса в строке браузера до списка ссылок проходит меньше секунды — и три больших этапа работы.</p>\n  <div class=\"author\">Пример презентации, собранной через MPGA</div>\n  <div class=\"num\">1</div>\n</section>\n\n<section class=\"slide\">\n  <div class=\"ey\">Слайд 2 · Устройство</div>\n  <h2>Три части поисковой системы</h2>\n  <div class=\"lead\">Поисковик не ищет по интернету в момент запроса. Он ищет по своей заранее собранной копии — индексу.</div>\n  <div class=\"cards\">\n    <div class=\"card\"><i data-lucide=\"globe\"></i><b>Робот</b><small>Обходит сайты и скачивает страницы</small></div>\n    <div class=\"card\"><i data-lucide=\"database\"></i><b>Индекс</b><small>Хранит слова и адреса страниц</small></div>\n    <div class=\"card\"><i data-lucide=\"search\"></i><b>Поиск</b><small>Отбирает и ранжирует ответы</small></div>\n  </div>\n  <div class=\"num\">2</div>\n</section>\n\n<section class=\"slide\">\n  <div class=\"ey\">Слайд 3 · Процесс</div>\n  <h2>Путь запроса</h2>\n  <div class=\"lead\">Запрос превращается в набор слов, слова находятся в индексе, а страницы выстраиваются по оценке полезности.</div>\n  <div style=\"margin-top:18px\">\n  <svg viewBox=\"0 0 1000 260\" style=\"width:100%;height:260px\">\n    <rect x=\"10\" y=\"70\" width=\"210\" height=\"110\" rx=\"10\" fill=\"#f5f7fa\" stroke=\"#254c6e\" stroke-width=\"3\"/>\n    <text x=\"115\" y=\"120\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"700\" fill=\"#1b2030\">Запрос</text>\n    <text x=\"115\" y=\"145\" text-anchor=\"middle\" font-size=\"13\" fill=\"#6b7481\">слова пользователя</text>\n    <path d=\"M232 125H288\" stroke=\"#6f8ca4\" stroke-width=\"4\"/><path d=\"M274 112l18 13-18 13\" fill=\"none\" stroke=\"#6f8ca4\" stroke-width=\"4\"/>\n    <rect x=\"300\" y=\"70\" width=\"210\" height=\"110\" rx=\"10\" fill=\"#f5f7fa\" stroke=\"#254c6e\" stroke-width=\"3\"/>\n    <text x=\"405\" y=\"120\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"700\" fill=\"#1b2030\">Индекс</text>\n    <text x=\"405\" y=\"145\" text-anchor=\"middle\" font-size=\"13\" fill=\"#6b7481\">где встречаются слова</text>\n    <path d=\"M522 125H578\" stroke=\"#6f8ca4\" stroke-width=\"4\"/><path d=\"M564 112l18 13-18 13\" fill=\"none\" stroke=\"#6f8ca4\" stroke-width=\"4\"/>\n    <rect x=\"590\" y=\"70\" width=\"210\" height=\"110\" rx=\"10\" fill=\"#f5f7fa\" stroke=\"#254c6e\" stroke-width=\"3\"/>\n    <text x=\"695\" y=\"120\" text-anchor=\"middle\" font-size=\"17\" font-weight=\"700\" fill=\"#1b2030\">Оценка</text>\n    <text x=\"695\" y=\"145\" text-anchor=\"middle\" font-size=\"13\" fill=\"#6b7481\">насколько страница полезна</text>\n    <path d=\"M812 125H868\" stroke=\"#6f8ca4\" stroke-width=\"4\"/><path d=\"M854 112l18 13-18 13\" fill=\"none\" stroke=\"#6f8ca4\" stroke-width=\"4\"/>\n    <circle cx=\"935\" cy=\"125\" r=\"55\" fill=\"#e7eef5\" stroke=\"#254c6e\" stroke-width=\"3\"/>\n    <text x=\"935\" y=\"131\" text-anchor=\"middle\" font-size=\"15\" font-weight=\"700\" fill=\"#1b2030\">Ответ</text>\n  </svg>\n  </div>\n  <div class=\"num\">3</div>\n</section>\n\n<section class=\"slide\">\n  <div class=\"ey\">Слайд 4 · Выводы</div>\n  <h2>Что стоит запомнить</h2>\n  <div class=\"steps\">\n    <div class=\"step-item\"><b>Поиск идёт по индексу</b><span>Страница, которую робот не обошёл, в результатах не появится.</span></div>\n    <div class=\"step-item\"><b>Порядок ссылок — это оценка</b><span>Первое место означает оценку алгоритма, а не истину.</span></div>\n    <div class=\"step-item\"><b>Слова запроса важны</b><span>Точные термины дают точные ответы, общие слова — общие.</span></div>\n    <div class=\"step-item\"><b>Источник нужно проверять</b><span>Автор, дата и происхождение текста важнее позиции в выдаче.</span></div>\n  </div>\n  <div class=\"lead\" style=\"margin-top:24px\">Поисковая система экономит время, но ответственность за выбор источника остаётся на человеке.</div>\n  <div class=\"num\">4</div>\n</section>\n\n</main>\n</body>\n</html>\n";
-window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-11 · <a href=\"https://github.com/mpga-tool/mpga\">исходный код и обновления</a></div>\n  <div>Внутри работают библиотеки с открытыми лицензиями:\n    PptxGenJS 4.0.1 (MIT, © Brent Ely), JSZip (MIT, © Stuk),\n    набор иконок lucide (ISC, © Lucide Contributors, на основе Feather © Cole Bemis).\n    Сам MPGA — лицензия MIT.</div>\n";
+window.MPGA_LEGAL = "\n  <div>MPGA 0.1.0 · сборка 2026-09-12 · <a href=\"https://github.com/Aver005/make-pptx-great-again\">исходный код и обновления</a></div>\n  <div>Внутри работают библиотеки с открытыми лицензиями:\n    PptxGenJS 4.0.1 (MIT, © Brent Ely), JSZip (MIT, © Stuk),\n    набор иконок lucide (ISC, © Lucide Contributors, на основе Feather © Cole Bemis).\n    Сам MPGA — лицензия MIT.</div>\n";
 </script>
 <script>
 (() => {
-  const PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML
-  const $ = id => document.getElementById(id)
-  const BUILD = window.MPGA_BUILD || { version: 'dev', date: '' }
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const PRISTINE = "<!doctype html>\n" + document.documentElement.outerHTML;
+  const $ = (id) => document.getElementById(id);
+  const BUILD = window.MPGA_BUILD || { version: "dev", date: "" };
+  const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let current = null
+  let current = null;
 
   /* ---------- иконки ---------- */
 
   function iconMarkup(name, cls) {
-    const body = (window.MPGA_ICONS || {})[name]
-    if (!body) return ''
-    return `<svg class="${cls || ''}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
+    const body = (window.MPGA_ICONS || {})[name];
+    if (!body) return "";
+    return (
+      `<svg class="${cls || ""}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"` +
       ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"' +
       ` stroke-linejoin="round" aria-hidden="true">${body}</svg>`
+    );
   }
 
   function paintUiIcons(root = document) {
-    for (const node of [...root.querySelectorAll('[data-ui-icon]')]) {
-      const markup = iconMarkup(node.getAttribute('data-ui-icon'), node.className)
-      if (!markup) { node.remove(); continue }
-      const holder = document.createElement('div')
-      holder.innerHTML = markup
-      node.replaceWith(holder.firstElementChild)
+    for (const node of root.querySelectorAll("[data-ui-icon]")) {
+      const markup = iconMarkup(node.getAttribute("data-ui-icon"), node.className);
+      if (!markup) {
+        node.remove();
+        continue;
+      }
+      const holder = document.createElement("div");
+      holder.innerHTML = markup;
+      node.replaceWith(holder.firstElementChild);
     }
   }
 
   /* ---------- мелочи ---------- */
 
   function esc(text) {
-    return String(text).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+    return String(text).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
   }
 
   function plural(n, one, few, many) {
-    const mod10 = n % 10
-    const mod100 = n % 100
-    if (mod10 === 1 && mod100 !== 11) return one
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few
-    return many
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return one;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+    return many;
   }
 
   function setStatus(text, busy, alarming) {
-    const box = $('status')
-    box.classList.toggle('on', !!text)
-    box.classList.toggle('bad', !!alarming)
-    box.setAttribute('aria-live', alarming ? 'assertive' : 'polite')
+    const box = $("status");
+    box.classList.toggle("on", !!text);
+    box.classList.toggle("bad", !!alarming);
+    box.setAttribute("aria-live", alarming ? "assertive" : "polite");
     box.innerHTML = text
-      ? (busy ? '<div class="track"></div>' : '') + (alarming ? iconMarkup('circle-alert') : '') +
+      ? (busy ? '<div class="track"></div>' : "") +
+        (alarming ? iconMarkup("circle-alert") : "") +
         (alarming ? `<div>${text}</div>` : text)
-      : ''
+      : "";
   }
 
   function fileName(title) {
-    const clean = (title || 'Презентация').replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60)
-    return `${clean || 'Презентация'}.pptx`
+    const clean = (title || "Презентация")
+      .replace(/[\\/:*?"<>|]+/g, " ")
+      .trim()
+      .slice(0, 60);
+    return `${clean || "Презентация"}.pptx`;
   }
 
   function saveBlob(blob, name) {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = name
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
   async function copy(text, button, label) {
-    const old = button.innerHTML
-    button.style.minWidth = `${button.getBoundingClientRect().width}px`
+    const old = button.innerHTML;
+    button.style.minWidth = `${button.getBoundingClientRect().width}px`;
     try {
-      await navigator.clipboard.writeText(text)
-    } catch (err) {
-      const area = document.createElement('textarea')
-      area.value = text
-      document.body.appendChild(area)
-      area.select()
-      document.execCommand('copy')
-      area.remove()
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
     }
-    button.classList.add('copied')
-    button.innerHTML = `${iconMarkup('check')}<span>${esc(label || 'Скопировано')}</span>`
+    button.classList.add("copied");
+    button.innerHTML = `${iconMarkup("check")}<span>${esc(label || "Скопировано")}</span>`;
     setTimeout(() => {
-      button.innerHTML = old
-      button.classList.remove('copied')
-      button.style.minWidth = ''
-    }, 2200)
+      button.innerHTML = old;
+      button.classList.remove("copied");
+      button.style.minWidth = "";
+    }, 2200);
   }
 
   /* ---------- плавное раскрытие ---------- */
 
   function bindFolds() {
-    for (const fold of document.querySelectorAll('details.fold')) {
-      const summary = fold.querySelector('summary')
-      const body = fold.querySelector('.fold-body')
-      summary.addEventListener('click', event => {
-        if (REDUCED || !fold.open) return
-        event.preventDefault()
-        fold.classList.add('closing')
-        let closed = false
+    for (const fold of document.querySelectorAll("details.fold")) {
+      const summary = fold.querySelector("summary");
+      const body = fold.querySelector(".fold-body");
+      summary.addEventListener("click", (event) => {
+        if (REDUCED || !fold.open) return;
+        event.preventDefault();
+        fold.classList.add("closing");
+        let closed = false;
         const done = () => {
-          if (closed) return
-          closed = true
-          fold.open = false
-          fold.classList.remove('closing')
-          body.removeEventListener('transitionend', done)
-        }
-        body.addEventListener('transitionend', done)
-        setTimeout(done, 420)
-      })
+          if (closed) return;
+          closed = true;
+          fold.open = false;
+          fold.classList.remove("closing");
+          body.removeEventListener("transitionend", done);
+        };
+        body.addEventListener("transitionend", done);
+        setTimeout(done, 420);
+      });
     }
   }
 
   /* ---------- результат ---------- */
 
   function layoutPreview() {
-    const host = $('slides')
-    const ir = current && current.ir
-    if (!ir) return
-    const first = host.querySelector('.frame')
-    if (!first) return
-    const width = first.clientWidth
-    if (!width) return
-    const scale = width / ir.slideW
-    for (const frame of host.querySelectorAll('.frame')) {
-      frame.style.height = `${Math.round(ir.slideH * scale)}px`
-      frame.firstElementChild.style.transform = `scale(${scale})`
+    const host = $("slides");
+    const ir = current && current.ir;
+    if (!ir) return;
+    const first = host.querySelector(".frame");
+    if (!first) return;
+    const width = first.clientWidth;
+    if (!width) return;
+    const scale = width / ir.slideW;
+    for (const frame of host.querySelectorAll(".frame")) {
+      frame.style.height = `${Math.round(ir.slideH * scale)}px`;
+      frame.firstElementChild.style.transform = `scale(${scale})`;
     }
   }
 
   function renderPreview(ir) {
-    const host = $('slides')
-    host.innerHTML = ''
+    const host = $("slides");
+    host.innerHTML = "";
     ir.slides.forEach((slide, index) => {
-      const card = document.createElement('div')
-      card.className = 'thumb'
-      card.style.setProperty('--i', Math.min(index, 12))
-      const frame = document.createElement('div')
-      frame.className = 'frame'
-      const stage = document.createElement('div')
-      stage.className = 'stage'
+      const card = document.createElement("div");
+      card.className = "thumb";
+      card.style.setProperty("--i", Math.min(index, 12));
+      const frame = document.createElement("div");
+      frame.className = "frame";
+      const stage = document.createElement("div");
+      stage.className = "stage";
       stage.style.cssText =
         `width:${ir.slideW}px;height:${ir.slideH}px;` +
-        `background:${slide.background ? '#' + slide.background : '#fff'}`
+        `background:${slide.background ? "#" + slide.background : "#fff"}`;
 
       for (const box of slide.boxes) {
-        const node = document.createElement('div')
-        let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`
-        if (box.fill) css += `background:#${box.fill};`
-        if (box.stroke) css += `border:${box.strokeW}px solid #${box.stroke};`
-        if (box.radius === -1) css += 'border-radius:50%;'
-        else if (box.radius > 0) css += `border-radius:${box.radius}px;`
-        if (box.rot) css += `transform:rotate(${box.rot}deg);`
-        node.style.cssText = css
-        stage.appendChild(node)
+        const node = document.createElement("div");
+        let css = `left:${box.x}px;top:${box.y}px;width:${box.w}px;height:${box.h}px;`;
+        if (box.fill) css += `background:#${box.fill};`;
+        if (box.stroke) css += `border:${box.strokeW}px solid #${box.stroke};`;
+        if (box.radius === -1) css += "border-radius:50%;";
+        else if (box.radius > 0) css += `border-radius:${box.radius}px;`;
+        if (box.rot) css += `transform:rotate(${box.rot}deg);`;
+        node.style.cssText = css;
+        stage.appendChild(node);
       }
       for (const image of slide.images) {
-        if (!image.data) continue
-        const node = document.createElement('img')
-        node.src = image.data
-        node.alt = ''
-        node.style.cssText = `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
-          (image.rot ? `;transform:rotate(${image.rot}deg)` : '')
-        stage.appendChild(node)
+        if (!image.data) continue;
+        const node = document.createElement("img");
+        node.src = image.data;
+        node.alt = "";
+        node.style.cssText =
+          `left:${image.x}px;top:${image.y}px;width:${image.w}px;height:${image.h}px` +
+          (image.rot ? `;transform:rotate(${image.rot}deg)` : "");
+        stage.appendChild(node);
       }
       for (const text of slide.texts) {
-        const node = document.createElement('div')
-        node.className = 't'
-        const first = text.runs.find(r => !r.br) || {}
+        const node = document.createElement("div");
+        node.className = "t";
+        const first = text.runs.find((r) => !r.br) || {};
         node.style.cssText =
           `left:${text.x}px;top:${text.y}px;width:${text.w}px;height:${text.h}px;` +
-          `font:${first.bold ? '700' : '400'} ${first.size}px/${text.lh}px Arial,sans-serif;` +
-          `color:#${first.color || '000'};text-align:${text.align};` +
+          `font:${first.bold ? "700" : "400"} ${first.size}px/${text.lh}px Arial,sans-serif;` +
+          `color:#${first.color || "000"};text-align:${text.align};` +
           `display:flex;align-items:center;justify-content:${
-            text.align === 'center' ? 'center' : text.align === 'right' || text.align === 'end' ? 'flex-end' : 'flex-start'};`
-        node.innerHTML = '<span>' + text.runs.map(run => run.br ? '<br>' :
-          `<span style="font-weight:${run.bold ? 700 : 400};font-size:${run.size}px;color:#${run.color};` +
-          `${run.italic ? 'font-style:italic;' : ''}${run.spacing > 0.1 ? `letter-spacing:${run.spacing}px;` : ''}">` +
-          esc(run.text) + '</span>').join('') + '</span>'
-        stage.appendChild(node)
+            text.align === "center"
+              ? "center"
+              : text.align === "right" || text.align === "end"
+                ? "flex-end"
+                : "flex-start"
+          };`;
+        node.innerHTML =
+          "<span>" +
+          text.runs
+            .map((run) =>
+              run.br
+                ? "<br>"
+                : `<span style="font-weight:${run.bold ? 700 : 400};font-size:${run.size}px;color:#${run.color};` +
+                  `${run.italic ? "font-style:italic;" : ""}${run.spacing > 0.1 ? `letter-spacing:${run.spacing}px;` : ""}">` +
+                  esc(run.text) +
+                  "</span>",
+            )
+            .join("") +
+          "</span>";
+        stage.appendChild(node);
       }
-      frame.appendChild(stage)
-      card.appendChild(frame)
-      const num = document.createElement('div')
-      num.className = 'no'
-      num.textContent = slide.index + 1
-      card.appendChild(num)
-      host.appendChild(card)
-    })
-    requestAnimationFrame(layoutPreview)
+      frame.appendChild(stage);
+      card.appendChild(frame);
+      const num = document.createElement("div");
+      num.className = "no";
+      num.textContent = slide.index + 1;
+      card.appendChild(num);
+      host.appendChild(card);
+    });
+    requestAnimationFrame(layoutPreview);
   }
 
-  const NOTE_ICON = { error: 'circle-alert', warn: 'triangle-alert', info: 'info', good: 'circle-check' }
+  const NOTE_ICON = {
+    error: "circle-alert",
+    warn: "triangle-alert",
+    info: "info",
+    good: "circle-check",
+  };
 
   function renderNotes(warnings) {
-    const host = $('notes')
-    host.innerHTML = ''
-    const visible = warnings.filter(w => w.level !== 'info' || w.always)
-    const fix = window.MPGA.fixMessage(warnings)
-    let index = 0
+    const host = $("notes");
+    host.innerHTML = "";
+    const visible = warnings.filter((w) => w.level !== "info" || w.always);
+    const fix = window.MPGA.fixMessage(warnings);
+    let index = 0;
 
     const add = (level, html) => {
-      const item = document.createElement('li')
-      item.className = `note ${level}`
-      item.style.setProperty('--i', index++)
-      item.innerHTML = iconMarkup(NOTE_ICON[level] || 'info') + `<div>${html}</div>`
-      host.appendChild(item)
-      return item
-    }
+      const item = document.createElement("li");
+      item.className = `note ${level}`;
+      item.style.setProperty("--i", index++);
+      item.innerHTML = iconMarkup(NOTE_ICON[level] || "info") + `<div>${html}</div>`;
+      host.appendChild(item);
+      return item;
+    };
 
-    if (!visible.length) add('good', 'Ничего не потерялось: весь текст и все картинки со страницы попали в презентацию.')
+    if (!visible.length)
+      add(
+        "good",
+        "Ничего не потерялось: весь текст и все картинки со страницы попали в презентацию.",
+      );
     for (const note of visible) {
-      add(note.level === 'error' ? 'error' : 'warn',
-        esc(note.text) + (note.count > 1 ? ` <span class="count">(${note.count} раза)</span>` : ''))
+      add(
+        note.level === "error" ? "error" : "warn",
+        esc(note.text) + (note.count > 1 ? ` <span class="count">(${note.count} раза)</span>` : ""),
+      );
     }
     if (fix) {
-      const item = add('info',
-        'Что-то перенеслось не так? Скопируйте замечания и отправьте в тот же чат — нейросеть пришлёт исправленный файл.' +
-        `<div class="fix"><button class="btn" id="copy-fix">${iconMarkup('clipboard-copy')}<span>Скопировать замечания</span></button></div>`)
-      item.querySelector('#copy-fix').onclick = event =>
-        copy(fix, event.currentTarget, 'Скопировано — вставьте в чат')
+      const item = add(
+        "info",
+        "Что-то перенеслось не так? Скопируйте замечания и отправьте в тот же чат — нейросеть пришлёт исправленный файл." +
+          `<div class="fix"><button class="btn" id="copy-fix">${iconMarkup("clipboard-copy")}<span>Скопировать замечания</span></button></div>`,
+      );
+      item.querySelector("#copy-fix").onclick = (event) =>
+        copy(fix, event.currentTarget, "Скопировано — вставьте в чат");
     }
   }
 
   function renderSummary(ir) {
-    const slides = ir.slides.length
-    const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0)
-    const shapes = ir.slides.reduce((n, s) => n + s.boxes.length, 0)
+    const slides = ir.slides.length;
+    const texts = ir.slides.reduce((n, s) => n + s.texts.length, 0);
+    const shapes = ir.slides.reduce((n, s) => n + s.boxes.length, 0);
     const chips = [
-      ['layers', slides, plural(slides, 'слайд', 'слайда', 'слайдов')],
-      ['shapes', texts + shapes, plural(texts + shapes, 'объект', 'объекта', 'объектов')],
-    ]
-    $('summary').className = 'stats'
-    $('summary').innerHTML = chips
-      .map(([icon, value, word]) => `<span class="stat">${iconMarkup(icon)}<b>${value}</b> ${word}</span>`)
-      .join('') + '<span class="stat promise">' + iconMarkup('pencil') + 'каждый правится мышкой</span>'
+      ["layers", slides, plural(slides, "слайд", "слайда", "слайдов")],
+      ["shapes", texts + shapes, plural(texts + shapes, "объект", "объекта", "объектов")],
+    ];
+    $("summary").className = "stats";
+    $("summary").innerHTML =
+      chips
+        .map(
+          ([icon, value, word]) =>
+            `<span class="stat">${iconMarkup(icon)}<b>${value}</b> ${word}</span>`,
+        )
+        .join("") +
+      '<span class="stat promise">' +
+      iconMarkup("pencil") +
+      "каждый правится мышкой</span>";
   }
 
   /* ---------- конвертация ---------- */
 
   async function run(source, label, isDemo) {
-    $('result').classList.remove('on')
-    setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ''}…`, true)
-    await new Promise(done => setTimeout(done, 30))
+    $("result").classList.remove("on");
+    setStatus(`Собираю презентацию${label ? ` из ${esc(label)}` : ""}…`, true);
+    await new Promise((done) => setTimeout(done, 30));
     try {
-      const { ir, warnings } = await window.MPGA.convert(source)
-      current = { ir, warnings }
-      renderPreview(ir)
-      renderNotes(warnings)
-      renderSummary(ir)
-      $('demo-mark').hidden = !isDemo
-      $('save-as').textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`
-      setStatus('')
-      $('step-3-waiting').hidden = true
-      for (const id of ['step-1', 'step-2']) $(id).classList.add('spent')
-      $('result').classList.add('on')
-      $('result').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' })
+      const { ir, warnings } = await window.MPGA.convert(source);
+      current = { ir, warnings };
+      renderPreview(ir);
+      renderNotes(warnings);
+      renderSummary(ir);
+      $("demo-mark").hidden = !isDemo;
+      $("save-as").textContent = `Сохранится как «${fileName(ir.title)}» в папку «Загрузки»`;
+      setStatus("");
+      $("step-3-waiting").hidden = true;
+      for (const id of ["step-1", "step-2"]) $(id).classList.add("spent");
+      $("result").classList.add("on");
+      $("result").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
     } catch (err) {
-      setStatus(`<b>Не получилось.</b> ${esc(err.friendly ? err.message : 'Это не похоже на презентацию: ' + err.message)}` +
-        '<br>Попросите нейросеть прислать страницу целиком, одним файлом <code>.html</code>, и загрузите снова.', false, true)
+      setStatus(
+        `<b>Не получилось.</b> ${esc(err.friendly ? err.message : "Это не похоже на презентацию: " + err.message)}` +
+          "<br>Попросите нейросеть прислать страницу целиком, одним файлом <code>.html</code>, и загрузите снова.",
+        false,
+        true,
+      );
     }
   }
 
   function readFile(file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(new Error('файл не читается'))
-      reader.readAsText(file, 'utf-8')
-    })
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("файл не читается"));
+      reader.readAsText(file, "utf-8");
+    });
   }
 
   /* ---------- сборка страницы ---------- */
 
   function bind() {
-    paintUiIcons()
-    bindFolds()
+    paintUiIcons();
+    bindFolds();
 
-    $('prompt-text').value = window.MPGA_PROMPT || ''
+    $("prompt-text").value = window.MPGA_PROMPT || "";
 
-    $('copy-prompt').onclick = event =>
-      copy(window.MPGA_PROMPT || '', event.currentTarget, 'Скопировано — вставьте в чат')
-    $('pick').onclick = () => $('file').click()
-    $('file').onchange = async event => {
-      const file = event.target.files[0]
-      if (file) run(await readFile(file), file.name)
-      event.target.value = ''
-    }
-    $('demo').onclick = () => run(window.MPGA_DEMO || '', 'примера', true)
-    $('convert-paste').onclick = () => {
-      const value = $('paste').value.trim()
-      if (value.length < 40) { setStatus('Вставьте код презентации целиком — он начинается с <code>&lt;!doctype html&gt;</code>.'); return }
-      run(value, 'вставленного кода')
-    }
+    $("copy-prompt").onclick = (event) =>
+      copy(window.MPGA_PROMPT || "", event.currentTarget, "Скопировано — вставьте в чат");
+    $("pick").onclick = () => $("file").click();
+    $("file").onchange = async (event) => {
+      const file = event.target.files[0];
+      if (file) run(await readFile(file), file.name);
+      event.target.value = "";
+    };
+    $("demo").onclick = () => run(window.MPGA_DEMO || "", "примера", true);
+    $("convert-paste").onclick = () => {
+      const value = $("paste").value.trim();
+      if (value.length < 40) {
+        setStatus(
+          "Вставьте код презентации целиком — он начинается с <code>&lt;!doctype html&gt;</code>.",
+        );
+        return;
+      }
+      run(value, "вставленного кода");
+    };
 
-    const drop = $('drop')
-    let dragDepth = 0
-    drop.addEventListener('dragenter', event => {
-      event.preventDefault()
-      dragDepth++
-      drop.classList.add('over')
-    })
-    drop.addEventListener('dragover', event => { event.preventDefault(); drop.classList.add('over') })
-    drop.addEventListener('dragleave', event => {
-      event.preventDefault()
-      dragDepth = Math.max(0, dragDepth - 1)
-      if (!dragDepth) drop.classList.remove('over')
-    })
-    drop.addEventListener('drop', async event => {
-      event.preventDefault()
-      dragDepth = 0
-      drop.classList.remove('over')
-      const file = event.dataTransfer.files[0]
-      if (file) run(await readFile(file), file.name)
-    })
+    const drop = $("drop");
+    let dragDepth = 0;
+    drop.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+      dragDepth++;
+      drop.classList.add("over");
+    });
+    drop.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      drop.classList.add("over");
+    });
+    drop.addEventListener("dragleave", (event) => {
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (!dragDepth) drop.classList.remove("over");
+    });
+    drop.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      dragDepth = 0;
+      drop.classList.remove("over");
+      const file = event.dataTransfer.files[0];
+      if (file) run(await readFile(file), file.name);
+    });
 
-    $('download').onclick = async event => {
-      if (!current) return
-      const button = event.currentTarget
-      const old = button.innerHTML
-      button.disabled = true
-      button.innerHTML = `${iconMarkup('loader', 'spin')}<span>Собираю файл…</span>`
+    $("download").onclick = async (event) => {
+      if (!current) return;
+      const button = event.currentTarget;
+      const old = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = `${iconMarkup("loader", "spin")}<span>Собираю файл…</span>`;
       try {
         const blob = await window.MPGA.pptxBlob(current.ir, {
-          title: current.ir.title, app: `MPGA ${BUILD.version}`,
-        })
-        saveBlob(blob, fileName(current.ir.title))
-        button.innerHTML = `${iconMarkup('check')}<span>Скачать ещё раз</span>`
-      } catch (err) {
-        button.innerHTML = old
-        setStatus('<b>Не получилось собрать файл.</b> Попробуйте ещё раз или перезагрузите страницу.')
+          title: current.ir.title,
+          app: `MPGA ${BUILD.version}`,
+        });
+        saveBlob(blob, fileName(current.ir.title));
+        button.innerHTML = `${iconMarkup("check")}<span>Скачать ещё раз</span>`;
+      } catch {
+        button.innerHTML = old;
+        setStatus(
+          "<b>Не получилось собрать файл.</b> Попробуйте ещё раз или перезагрузите страницу.",
+        );
       }
-      button.disabled = false
-    }
+      button.disabled = false;
+    };
 
-    $('offline-line').innerHTML =
-      `<button class="btn ghost" id="save-offline">${iconMarkup('hard-drive-download')}<span>Сохранить страницу себе</span></button>` +
-      '<span>потом откроется даже без интернета</span>'
-    $('save-offline').onclick = () => {
-      saveBlob(new Blob([PRISTINE], { type: 'text/html' }), `MPGA-${BUILD.version}.html`)
-    }
-    $('legal').innerHTML = window.MPGA_LEGAL || ''
+    $("offline-line").innerHTML =
+      `<button class="btn ghost" id="save-offline">${iconMarkup("hard-drive-download")}<span>Сохранить страницу себе</span></button>` +
+      "<span>потом откроется даже без интернета</span>";
+    $("save-offline").onclick = () => {
+      saveBlob(new Blob([PRISTINE], { type: "text/html" }), `MPGA-${BUILD.version}.html`);
+    };
+    $("legal").innerHTML = window.MPGA_LEGAL || "";
 
-    let pending = 0
+    let pending = 0;
     new ResizeObserver(() => {
-      cancelAnimationFrame(pending)
-      pending = requestAnimationFrame(layoutPreview)
-    }).observe($('slides'))
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(layoutPreview);
+    }).observe($("slides"));
 
-    window.addEventListener('error', event => {
-      setStatus(`<b>Что-то пошло не так.</b> ${esc(event.message || '')}<br>` +
-        'Попробуйте другой файл или перезагрузите страницу.')
-    })
+    window.addEventListener("error", (event) => {
+      setStatus(
+        `<b>Что-то пошло не так.</b> ${esc(event.message || "")}<br>` +
+          "Попробуйте другой файл или перезагрузите страницу.",
+      );
+    });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind)
-  else bind()
-})()
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
+  else bind();
+})();
 
 </script>
 </body>

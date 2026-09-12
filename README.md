@@ -8,9 +8,11 @@ MPGA берёт HTML и собирает из него настоящий фай
 Ничего устанавливать не нужно. Открывается в браузере, работает без интернета,
 файл никуда не отправляется.
 
+Открыть: **https://mpga.kiviuly.ru**
+
 ## Как пользоваться
 
-1. Откройте `MPGA.html` — двойным щелчком, если скачали файл, или по ссылке.
+1. Откройте https://mpga.kiviuly.ru — или скачанный `MPGA.html` двойным щелчком.
 2. Нажмите **«Скопировать задание для нейросети»** и вставьте его в ChatGPT,
    DeepSeek, GigaChat или Claude, дописав свою тему.
 3. Нейросеть пришлёт код. Скачайте его файлом или просто скопируйте из чата.
@@ -53,17 +55,42 @@ MPGA берёт HTML и собирает из него настоящий фай
 
 ## Для разработки
 
+Стек как у соседних проектов: Bun, oxlint, oxfmt.
+
 ```
-npm install          # puppeteer-core для тестов
-npm run icons        # пересобрать набор иконок из lucide-static
-npm run build        # собрать dist/MPGA.html (один файл, ~0,9 МБ)
-npm test             # прогнать примеры и сверить с рендером LibreOffice
-npm run e2e          # проверить собранный файл как пользователь, с обрывом сети
-npm run convert -- deck.html -o deck.pptx   # пакетная конвертация без браузера
+bun install          # puppeteer-core для тестов, линтер и форматтер
+bun run icons        # пересобрать набор иконок из lucide-static
+bun run build        # собрать dist/MPGA.html (один файл, ~1 МБ)
+bun test             # прогнать примеры и сверить с рендером LibreOffice
+bun run e2e          # проверить собранный файл как пользователь, с обрывом сети
+bun run lint         # oxlint
+bun run format       # oxfmt
+bun run convert -- deck.html -o deck.pptx   # пакетная конвертация без браузера
+bun run dev          # поднять страницу локально на :3000
 ```
 
 Проверка результата требует LibreOffice (`soffice`), `pdftoppm` и ImageMagick.
 Тесты открывают собранный файл в headless-браузере, обрывают все сетевые
 запросы и сверяют PPTX с тем, как та же презентация выглядит в браузере.
+
+## Как это развёрнуто
+
+Сервис живёт в общем стеке `kiviuly`: свой контейнер на Bun отдаёт одну
+статическую страницу, наружу её публикует Caddy по HTTPS.
+
+```
+docker compose up -d mpga          # из /root, где лежит общий compose
+docker compose logs -f mpga
+```
+
+| Что | Где |
+| --- | --- |
+| [`Dockerfile`](Dockerfile) | двухступенчатый: первая собирает `dist/MPGA.html` из исходников, вторая только отдаёт |
+| [`server/main.ts`](server/main.ts) | сервер на Bun: страница в памяти, ETag, `/download`, `/health` |
+| [`compose.yml`](compose.yml) | описание сервиса; порт по умолчанию 7200 |
+| [`compose.caddy.yml`](compose.caddy.yml) | оверрайд: порт уезжает на localhost, наружу отдаёт Caddy |
+
+Домен задаётся переменной `MPGA_DOMAIN` в `/root/.env`, блок сайта — в
+`/root/Caddyfile`.
 
 Лицензия: [MIT](LICENSE).

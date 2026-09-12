@@ -1,0 +1,33 @@
+services:
+  mpga:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mpga:local
+    container_name: mpga
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-7200}:3000"
+    environment:
+      PORT: "3000"
+      HOST: "0.0.0.0"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - "CMD"
+        - "bun"
+        - "-e"
+        - "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
