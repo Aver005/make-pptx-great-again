@@ -1,0 +1,12 @@
+[Unit]
+Description=Проверять обновления MPGA
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=2min
+RandomizedDelaySec=30s
+AccuracySec=15s
+Unit=mpga-update.service
+
+[Install]
+WantedBy=timers.target

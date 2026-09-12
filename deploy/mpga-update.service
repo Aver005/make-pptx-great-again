@@ -1,0 +1,13 @@
+[Unit]
+Description=Обновление MPGA из репозитория
+Documentation=https://github.com/Aver005/make-pptx-great-again
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/root/mpga/deploy/update.sh
+EnvironmentFile=-/etc/default/mpga-update
+TimeoutStartSec=900
+Nice=10
+IOSchedulingClass=idle
