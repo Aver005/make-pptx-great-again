@@ -24,7 +24,7 @@ async function probe(label) {
     }
     return heights;
   });
-  const unique = [...new Set(samples)].length;
+  const unique = new Set(samples).size;
   const jump = samples[0] > 0 && samples[0] === samples.at(-1);
   console.log(
     `  ${label}: ${samples[0]} → ${samples.at(-1)} px, промежуточных значений ${unique}` +
