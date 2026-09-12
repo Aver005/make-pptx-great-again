@@ -8,7 +8,8 @@ rmSync(downloads, { recursive: true, force: true });
 mkdirSync(downloads, { recursive: true });
 
 const browser = await puppeteer.launch({
-  executablePath: process.env.MPGA_CHROME ?? "/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
+  executablePath:
+    process.env.MPGA_CHROME ?? "/root/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome",
   headless: true,
   args: ["--no-sandbox"],
 });
@@ -32,16 +33,25 @@ console.log(`  страница открыта за ${Date.now() - started} мс
 
 await page.click("#demo");
 await page.waitForSelector("#result.on", { timeout: 30000 });
-console.log("  конвертация:", (await page.$eval("#summary", (el) => el.textContent)).replace(/\s+/g, " ").trim());
+console.log(
+  "  конвертация:",
+  (await page.$eval("#summary", (el) => el.textContent)).replace(/\s+/g, " ").trim(),
+);
 
 await page.click("#download");
 await new Promise((done) => setTimeout(done, 2500));
 const files = readdirSync(downloads).filter((f) => f.endsWith(".pptx"));
-console.log(files.length
-  ? `  файл скачан: ${files[0]}, ${(statSync(join(downloads, files[0])).size / 1024) | 0} КБ`
-  : "  ФАЙЛ НЕ СКАЧАЛСЯ");
-console.log(`  запросов на другие адреса: ${external.length}${external.length ? " — " + external.slice(0, 3).join(", ") : ""}`);
-console.log(`  ошибок: ${errors.length}${errors.length ? " — " + errors.slice(0, 2).join(" | ") : ""}`);
+console.log(
+  files.length
+    ? `  файл скачан: ${files[0]}, ${(statSync(join(downloads, files[0])).size / 1024) | 0} КБ`
+    : "  ФАЙЛ НЕ СКАЧАЛСЯ",
+);
+console.log(
+  `  запросов на другие адреса: ${external.length}${external.length ? " — " + external.slice(0, 3).join(", ") : ""}`,
+);
+console.log(
+  `  ошибок: ${errors.length}${errors.length ? " — " + errors.slice(0, 2).join(" | ") : ""}`,
+);
 
 await browser.close();
 process.exit(files.length && !external.length && !errors.length ? 0 : 1);

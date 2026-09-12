@@ -4,6 +4,7 @@ COPY package.json ./
 COPY ПРОМПТ.md ./
 COPY src ./src
 COPY tools ./tools
+COPY assets ./assets
 COPY examples/demo.html ./examples/demo.html
 RUN bun tools/build.mjs
 

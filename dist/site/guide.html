@@ -1,0 +1,1385 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Превращает HTML-презентацию от нейросети в редактируемый PowerPoint: текст и фигуры остаются объектами, а не картинкой. Работает в браузере, без установки и без интернета.">
+<link rel="canonical" href="https://mpga.kiviuly.ru/guide">
+<meta name="theme-color" content="#0c0a0a">
+<meta name="robots" content="index, follow, max-image-preview:large">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MPGA">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="{{CANONICAL}}">
+<meta property="og:title" content="Презентация из нейросети — в настоящий PowerPoint">
+<meta property="og:description" content="Нейросеть присылает презентацию веб-страницей. MPGA собирает из неё файл PowerPoint, где текст и фигуры правятся мышкой. Бесплатно, без установки, файл не уходит в интернет.">
+<meta property="og:image" content="https://mpga.kiviuly.ru/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MPGA: HTML-презентация превращается в файл PowerPoint">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Презентация из нейросети — в настоящий PowerPoint">
+<meta name="twitter:description" content="HTML-презентация от нейросети превращается в редактируемый PPTX прямо в браузере. Бесплатно, без установки.">
+<meta name="twitter:image" content="https://mpga.kiviuly.ru/og.png">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230c0a0a'/><rect x='6' y='8' width='20' height='16' rx='2.5' fill='%23f2f1ef'/><rect x='9' y='11' width='9' height='2.4' rx='1.2' fill='%23ff4d2e'/><rect x='9' y='16' width='14' height='1.8' rx='.9' fill='%23c9c7c3'/><rect x='9' y='19.5' width='11' height='1.8' rx='.9' fill='%23d9d7d3'/></svg>">
+<title>Как сделать презентацию нейросетью и получить редактируемый PowerPoint</title>
+<style>
+:root {
+  --bg: #0c0a0a;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-2: rgba(255, 255, 255, 0.075);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-mid: rgba(255, 255, 255, 0.14);
+  --line-strong: rgba(255, 255, 255, 0.22);
+  --ink: #f2f1ef;
+  --muted: #b3afab;
+  --faint: #918c86;
+  --accent: #ff4d2e;
+  --accent-deep: #cf3418;
+  --accent-soft: rgba(255, 77, 46, 0.13);
+  --indigo: #8c9bff;
+  --ok: #37d399;
+  --ok-soft: rgba(55, 211, 153, 0.12);
+  --warn: #f5b63f;
+  --warn-soft: rgba(245, 182, 63, 0.12);
+  --danger: #ff6a55;
+  --danger-soft: rgba(255, 106, 85, 0.12);
+
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 0.14s;
+  --t: 0.22s;
+  --t-slow: 0.36s;
+  --tile-x: 96px;
+  --tile-y: 54px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font:
+    16px/1.55 -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---------- задний план ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.grid-plane {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+  background-size: var(--tile-x) var(--tile-y);
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(120% 90% at 50% 6%, #000 15%, transparent 72%);
+  animation: drift 70s linear infinite;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--tile-x), var(--tile-y), 0);
+  }
+}
+
+.aura {
+  position: absolute;
+  border-radius: 50%;
+  width: 860px;
+  height: 860px;
+  top: -320px;
+  left: -200px;
+  background: radial-gradient(circle, rgba(255, 77, 46, 0.17), rgba(255, 77, 46, 0) 62%);
+  animation: float-a 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes float-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(140px, 90px, 0) scale(1.12);
+  }
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(100% 70% at 50% 0%, rgba(12, 10, 10, 0) 40%, rgba(12, 10, 10, 0.8) 100%),
+    linear-gradient(180deg, rgba(12, 10, 10, 0.28), rgba(12, 10, 10, 0.84));
+}
+
+/* ---------- каркас ---------- */
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 44px 24px 72px;
+}
+
+.head {
+  margin-bottom: 30px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.logo {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  display: inline-flex;
+  align-items: baseline;
+}
+.logo .dot {
+  width: 9px;
+  height: 9px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 18px rgba(255, 77, 46, 0.7);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.pill[hidden] {
+  display: none;
+}
+.pill svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.3;
+}
+.pill-ok {
+  color: #9fe7c8;
+  border-color: rgba(55, 211, 153, 0.3);
+  background: var(--ok-soft);
+}
+.pill-ok svg {
+  color: var(--ok);
+}
+.brand .pill {
+  margin-left: auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: center;
+}
+.hero-text {
+  display: grid;
+  gap: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(28px, 4.2vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  font-weight: 700;
+}
+h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+.tagline {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.84em;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: #dedad4;
+}
+
+/* ---------- стопка слайдов в шапке ---------- */
+
+.deck-strip {
+  position: relative;
+  width: 232px;
+  height: 136px;
+}
+.deck-strip .mini {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  height: 84px;
+  border-radius: 7px;
+  background: linear-gradient(160deg, #fbfbfa, #e7e6e3);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 14px 30px rgba(0, 0, 0, 0.45);
+  animation: hover-deck 9s ease-in-out infinite alternate;
+}
+.deck-strip .m1 {
+  transform: translate(-50%, -50%) rotate(-8deg) translate(-26px, 10px);
+  opacity: 0.5;
+}
+.deck-strip .m2 {
+  transform: translate(-50%, -50%) rotate(-3deg) translate(-8px, 2px);
+  opacity: 0.75;
+  animation-delay: -3s;
+}
+.deck-strip .m3 {
+  transform: translate(-50%, -50%) rotate(3deg) translate(14px, -8px);
+  animation-delay: -6s;
+  background:
+    linear-gradient(90deg, var(--accent) 0 42px, transparent 42px) 14px 16px / 100% 5px no-repeat,
+    linear-gradient(90deg, #c9c7c3 0 84px, transparent 84px) 14px 30px / 100% 4px no-repeat,
+    linear-gradient(90deg, #d9d7d3 0 62px, transparent 62px) 14px 40px / 100% 4px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 14px 58px / 100% 16px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 50px 58px / 100% 16px no-repeat,
+    linear-gradient(90deg, #e2e0dc 0 30px, transparent 30px) 86px 58px / 100% 16px no-repeat,
+    #fff;
+}
+@keyframes hover-deck {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -8px;
+  }
+}
+
+.on-touch {
+  display: none;
+}
+
+/* ---------- секции ---------- */
+
+.step {
+  position: relative;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 22px 30px 22px 72px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  transition:
+    opacity var(--t-slow) var(--ease),
+    border-color var(--t);
+}
+.step.spent {
+  opacity: 0.72;
+}
+.step.spent:hover,
+.step.spent:focus-within {
+  opacity: 1;
+}
+.step.waiting {
+  opacity: 0.55;
+  border-style: dashed;
+  box-shadow: none;
+}
+.step.waiting .btn {
+  pointer-events: none;
+  background: none;
+  border-style: dashed;
+  border-color: var(--line);
+  color: var(--faint);
+  box-shadow: none;
+  font-weight: 500;
+}
+.result .step::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px -42px;
+}
+.step-no {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  border: 1px solid rgba(255, 77, 46, 0.34);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background var(--t),
+    border-color var(--t),
+    color var(--t);
+}
+.step.waiting .step-no,
+.step.spent .step-no {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--muted);
+}
+.step .step-no.done {
+  background: var(--ok-soft);
+  border-color: rgba(55, 211, 153, 0.34);
+  color: var(--ok);
+}
+.step-no svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.6;
+}
+
+h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+}
+.step-note {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+#step-1 .compact {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+#step-1 .compact .step-note {
+  margin: 0;
+  flex: 1 1 320px;
+}
+.step-note:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- кнопки ---------- */
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.row.center {
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 13px 18px;
+  min-height: 44px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--panel-2);
+  transition:
+    transform var(--t-fast) var(--ease),
+    background var(--t),
+    border-color var(--t),
+    box-shadow var(--t),
+    color var(--t);
+}
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  stroke-width: 2.1;
+  transition: transform var(--t) var(--ease);
+}
+.btn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.985);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn.primary {
+  background: linear-gradient(180deg, #d43a18, #c43110);
+  border-color: rgba(255, 122, 92, 0.35);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(196, 49, 16, 0.22);
+}
+.btn.primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #e04220, #d03616);
+  box-shadow: 0 10px 24px rgba(196, 49, 16, 0.32);
+}
+.btn.big {
+  width: 100%;
+  padding: 17px 22px;
+  font-size: 18px;
+}
+.btn.big svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.9;
+}
+.btn.ghost {
+  background: transparent;
+  border-color: var(--line-mid);
+  font-weight: 500;
+}
+.btn.copied {
+  background: var(--ok-soft);
+  border-color: rgba(55, 211, 153, 0.4);
+  color: #a9ecce;
+  box-shadow: none;
+}
+#download:not(:disabled):hover svg {
+  transform: translateY(2px);
+}
+
+/* ---------- зона загрузки ---------- */
+
+.drop {
+  position: relative;
+  text-align: center;
+  padding: 34px 20px 28px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line-strong);
+  background: rgba(255, 255, 255, 0.018);
+  transition:
+    border-color var(--t),
+    background var(--t);
+}
+.drop:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.drop:has(:focus-visible) {
+  border-color: var(--indigo);
+}
+.drop.over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.drop.over .drop-icon {
+  transform: translateY(-4px);
+  color: var(--accent);
+  border-color: rgba(255, 77, 46, 0.45);
+}
+.drop-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  transition:
+    transform var(--t) var(--ease),
+    color var(--t),
+    border-color var(--t);
+}
+.drop-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.6;
+}
+.big-label {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.hint {
+  color: var(--faint);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* ---------- раскрывающиеся блоки ---------- */
+
+details.fold {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+details.fold summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-size: 15px;
+  padding: 11px 0;
+  min-height: 44px;
+  transition: color var(--t);
+}
+details.fold summary::-webkit-details-marker {
+  display: none;
+}
+details.fold summary:hover {
+  color: var(--ink);
+}
+details.fold summary:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+summary .chev {
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  flex: none;
+  color: var(--faint);
+  transition: transform var(--t) var(--ease);
+}
+summary .chev svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke-width: 2.3;
+}
+details[open] summary .chev {
+  transform: rotate(90deg);
+}
+
+.fold-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t-slow) var(--ease);
+}
+details[open] .fold-body {
+  grid-template-rows: 1fr;
+}
+details.fold.closing .fold-body {
+  grid-template-rows: 0fr;
+}
+.fold-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.fold-inner > :first-child {
+  margin-top: 12px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 140px;
+  margin-bottom: 12px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #dedad4;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-sm);
+  padding: 13px;
+  resize: vertical;
+  transition:
+    border-color var(--t),
+    box-shadow var(--t);
+}
+textarea:hover {
+  border-color: var(--line-strong);
+}
+textarea:focus {
+  outline: 2px solid transparent;
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(140, 155, 255, 0.2);
+}
+textarea:read-only {
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--muted);
+  cursor: default;
+}
+textarea::placeholder {
+  color: var(--faint);
+}
+
+.btn svg.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- статус ---------- */
+
+.status {
+  display: none;
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--muted);
+}
+.status.on {
+  display: block;
+  animation: rise 0.3s var(--ease) both;
+}
+.status b {
+  color: var(--ink);
+}
+.status.bad {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 106, 85, 0.3);
+  background: var(--danger-soft);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  color: #f2c5bd;
+}
+.status.bad > svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+  color: var(--danger);
+  stroke-width: 2.1;
+}
+.status .track {
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--panel-2);
+  margin-bottom: 12px;
+}
+.status .track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 38%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: sweep 1.15s linear infinite;
+}
+@keyframes sweep {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(330%);
+  }
+}
+
+/* ---------- результат ---------- */
+
+.result {
+  display: none;
+}
+.result.on {
+  display: block;
+  animation: rise 0.42s var(--ease) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--panel);
+  font-size: 14px;
+  color: var(--muted);
+}
+.stat svg {
+  width: 15px;
+  height: 15px;
+  color: var(--faint);
+  stroke-width: 2.3;
+}
+.stat b {
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stat.promise {
+  border-color: rgba(55, 211, 153, 0.3);
+  background: var(--ok-soft);
+  color: #a9ecce;
+}
+.stat.promise svg {
+  color: var(--ok);
+}
+.demo-mark {
+  color: var(--muted);
+}
+.demo-mark svg {
+  color: var(--faint);
+}
+
+.save-as {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.done {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+.done ol {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.done li + li {
+  margin-top: 6px;
+}
+
+.notes {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.note {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background: var(--panel);
+  font-size: 15px;
+  line-height: 1.5;
+  animation: rise var(--t-slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+.note > svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  margin-top: 3px;
+  color: var(--faint);
+  stroke-width: 2.1;
+}
+.note > div {
+  max-width: 58ch;
+}
+.note.warn {
+  border-color: rgba(245, 182, 63, 0.28);
+  background: var(--warn-soft);
+}
+.note.warn > svg {
+  color: var(--warn);
+}
+.note.error {
+  border-color: rgba(255, 106, 85, 0.32);
+  background: var(--danger-soft);
+}
+.note.error > svg {
+  color: var(--danger);
+}
+.note.good > svg {
+  color: var(--ok);
+}
+.note .count {
+  color: var(--faint);
+}
+.note .fix {
+  margin-top: 12px;
+}
+.note .fix .btn {
+  padding: 10px 14px;
+  font-size: 14px;
+  min-height: 40px;
+}
+
+/* ---------- превью ---------- */
+
+.preview {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.preview-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.preview-title svg {
+  width: 17px;
+  height: 17px;
+  color: var(--faint);
+  stroke-width: 2.1;
+}
+.preview .step-note {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 20px 16px;
+}
+.thumb {
+  animation: rise var(--t-slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+.thumb .frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 12px 26px rgba(0, 0, 0, 0.45);
+  transition: box-shadow var(--t);
+}
+.thumb:hover .frame {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.6),
+    0 18px 34px rgba(0, 0, 0, 0.55);
+}
+.thumb .stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+.thumb .no {
+  margin-top: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+.stage div,
+.stage img {
+  position: absolute;
+}
+.stage img {
+  object-fit: fill;
+}
+.stage .t {
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+/* ---------- подвал ---------- */
+
+footer {
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.privacy {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.privacy svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--ok);
+  margin-top: 2px;
+  stroke-width: 2.1;
+}
+.foot-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.foot-row .btn {
+  padding: 11px 15px;
+  font-size: 14px;
+}
+.legal a {
+  color: #c8c4c0;
+  text-underline-offset: 2px;
+  display: inline-block;
+  padding: 4px 0;
+}
+.legal a:hover {
+  color: var(--ink);
+}
+a:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+/* ---------- телефон ---------- */
+
+.small-screen {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .deck-strip {
+    display: none;
+  }
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px), (pointer: coarse) {
+  .on-touch {
+    display: inline;
+  }
+  .on-mouse {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    padding: 28px 16px 48px;
+  }
+  .head {
+    margin-bottom: 28px;
+  }
+  .step {
+    padding: 20px 18px 20px 50px;
+    border-radius: var(--r-md);
+    margin-bottom: 12px;
+  }
+  .step-head {
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 10px -32px;
+  }
+  .step-no {
+    width: 24px;
+    height: 24px;
+    margin-top: 2px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .step-no svg {
+    width: 14px;
+    height: 14px;
+  }
+  .btn {
+    font-size: 14px;
+  }
+  .brand {
+    margin-bottom: 20px;
+  }
+  .brand .pill {
+    margin-left: 0;
+  }
+  h1 {
+    font-size: 30px;
+  }
+  h1 br {
+    display: none;
+  }
+  h2 {
+    font-size: 19px;
+  }
+  .drop {
+    padding: 24px 16px 22px;
+    border-radius: var(--r-sm);
+  }
+  .drop-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+    border-radius: var(--r-sm);
+  }
+  .drop-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+  .big-label {
+    font-size: 17px;
+  }
+  .row .btn {
+    flex: 1 1 auto;
+  }
+  .slides {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px 12px;
+  }
+  .small-screen {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    border: 1px solid rgba(245, 182, 63, 0.28);
+    background: var(--warn-soft);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #f0dcb4;
+  }
+  .small-screen svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--warn);
+    margin-top: 2px;
+    stroke-width: 2.1;
+  }
+  .foot-row {
+    gap: 8px;
+  }
+  .foot-row .btn {
+    width: 100%;
+  }
+  .foot-row > span {
+    flex: 1 0 100%;
+  }
+  #step-1 .compact {
+    display: block;
+  }
+  #step-1 .compact .step-note {
+    margin-bottom: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .logo {
+    font-size: 23px;
+  }
+  .slides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .status .track::after {
+    width: 100%;
+    transform: none;
+    animation: none;
+    opacity: 0.45;
+    background: var(--accent);
+  }
+}
+
+.article {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 26px;
+  color: var(--muted);
+  font-size: 15px;
+  text-decoration: none;
+}
+.article .back:hover {
+  color: var(--ink);
+}
+.article .back svg {
+  width: 16px;
+  height: 16px;
+}
+.article h1 {
+  font-size: clamp(28px, 4.2vw, 38px);
+  margin-bottom: 14px;
+}
+.article .lead {
+  font-size: 18px;
+  color: var(--muted);
+  margin: 0 0 34px;
+  line-height: 1.55;
+}
+.article h2 {
+  font-size: 22px;
+  margin: 40px 0 14px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.article p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.article strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.article ul,
+.article ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.article li {
+  margin-bottom: 8px;
+}
+.article li::marker {
+  color: var(--faint);
+}
+.article a {
+  color: var(--accent);
+}
+.article a:hover {
+  color: #ff7a5f;
+}
+.article .btn {
+  text-decoration: none;
+  color: #fff;
+}
+.article .btn:hover {
+  color: #fff;
+}
+.article .cta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 22px 26px;
+  margin: 36px 0;
+}
+.article .cta p {
+  margin: 0;
+  flex: 1 1 260px;
+}
+.article .note-box {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+}
+.article .note-box p {
+  margin: 0;
+  color: var(--ink);
+}
+@media (max-width: 760px) {
+  .article h2 {
+    font-size: 20px;
+    margin-top: 32px;
+  }
+  .article .lead {
+    font-size: 17px;
+  }
+  .article .cta {
+    padding: 18px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="backdrop" aria-hidden="true">
+  <div class="grid-plane"></div>
+  <div class="aura"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="wrap">
+<article class="article">
+
+  <a class="back" href="/">← MPGA</a>
+
+  <h1>Как сделать презентацию нейросетью и получить редактируемый PowerPoint</h1>
+  <p class="lead">Нейросеть за минуту собирает презентацию, которую потом невозможно открыть в PowerPoint. Разбираем, почему так выходит, что просить у чата и что проверить перед сдачей.</p>
+
+  <h2>Почему приходит веб-страница, а не файл PowerPoint</h2>
+  <p>Формат <strong>.pptx</strong> — это не текст, а архив из десятков XML-файлов со строгой структурой: каждая фигура описана координатами в единицах EMU, каждый абзац — своим деревом свойств. Написать такой архив символами в окне чата нельзя, а генерировать его нейросети почти никогда не умеют.</p>
+  <p>Зато они прекрасно пишут HTML: это обычный текст, и результат сразу видно в браузере. Поэтому на просьбу «сделай презентацию» приходит веб-страница — файл <strong>.html</strong>. Выглядит она отлично, но PowerPoint такой файл либо не открывает вовсе, либо показывает как набор символов.</p>
+  <div class="note-box"><p>Хорошая новость: HTML — честный исходник. Из него можно восстановить и текст, и цвета, и положение каждого блока. Именно это делает MPGA: замеряет готовую страницу настоящим браузером и пересобирает её объектами PowerPoint.</p></div>
+
+  <h2>Что просить у нейросети</h2>
+  <p>Чем предсказуемее страница, тем точнее перенос. Работает почти всё, но три вещи решают исход:</p>
+  <ul>
+    <li><strong>Постоянный размер слайда.</strong> Просите фиксированные 1160×652,5 пикселя и никаких <code>vw</code>, процентов и медиазапросов. Иначе слайд «резиновый»: в узком окне он перестраивается, и в файл уедет не та раскладка, которую вы видели.</li>
+    <li><strong>Короткие подписи.</strong> В карточках и на схемах — два-три слова. Причина ниже, в разделе про переносы.</li>
+    <li><strong>Ничего из интернета.</strong> Ни шрифтов по ссылке, ни библиотек, ни фотографий по URL: браузер не даёт прочитать чужую картинку, и на её месте останется пустая рамка.</li>
+  </ul>
+  <p>Всё это уже собрано в готовое задание — на главной странице есть кнопка, которая копирует его целиком. Допишите свою тему и отправьте в чат.</p>
+
+  <h2>Чего лучше не просить</h2>
+  <ul>
+    <li><strong>Градиенты и тени.</strong> В PowerPoint они переносятся плохо: блок с градиентом приходится вставлять картинкой, и текст поверх него перестаёт быть текстом.</li>
+    <li><strong>Повёрнутый текст.</strong> Наклонная плашка «Новинка!» уедет в файл картинкой — редактировать её будет нечем.</li>
+    <li><strong>Фотографии.</strong> Иллюстрируйте иконками и схемами: их движок переносит полностью, а схему — с редактируемыми подписями поверх.</li>
+    <li><strong>Таблицы тегом <code>&lt;table&gt;</code>.</strong> Сетка из блоков переносится аккуратнее.</li>
+  </ul>
+
+  <h2>Что проверить перед сдачей</h2>
+  <ol>
+    <li><strong>Число слайдов.</strong> Если нейросеть спрятала часть слайдов за навигацией, MPGA всё равно их достанет — но сверить количество стоит.</li>
+    <li><strong>Подписи в карточках.</strong> Самое частое место, где текст вылезает за рамку.</li>
+    <li><strong>Схемы.</strong> Графика переносится картинкой, подписи поверх неё остаются текстом. Если подпись пропала — значит, она была частью картинки.</li>
+    <li><strong>Замечания под результатом.</strong> Если что-то не перенеслось, MPGA пишет об этом прямо и даёт готовый текст, который можно отправить обратно в чат.</li>
+  </ol>
+
+  <div class="cta">
+    <p>Задание для нейросети и конвертер — на главной. Ничего устанавливать не нужно.</p>
+    <a class="btn primary" href="/">Открыть MPGA</a>
+  </div>
+
+  <h2>Почему текст иногда вылезает за рамку</h2>
+  <p>Браузер и PowerPoint считают ширину строки чуть по-разному: даже один и тот же Arial в PowerPoint выходит на доли процента шире. На длинной подписи эти доли превращаются в лишнюю букву, которая не помещается.</p>
+  <p>Поэтому короткие подписи переносятся одной строкой намеренно: лучше пусть буква выйдет за край карточки, чем слово разорвётся пополам и уедет вниз. Если такое случилось — потяните рамку за угол в PowerPoint или сократите текст.</p>
+
+  <h2>Что происходит с вашим файлом</h2>
+  <p>Ничего не отправляется на сервер. Страница MPGA несёт движок внутри себя: она открывает вашу презентацию в невидимом окне, замеряет каждый элемент и собирает архив <strong>.pptx</strong> прямо в браузере. После загрузки страницы обращений в интернет нет ни одного — можно отключить сеть и убедиться, что всё продолжает работать.</p>
+  <p>По той же причине страницу можно сохранить себе на компьютер и пользоваться ей без интернета: это один файл, внутри которого есть всё нужное, включая набор иконок.</p>
+
+  <h2>Коротко</h2>
+  <ul>
+    <li>Нейросеть отдаёт презентацию веб-страницей, потому что <strong>.pptx</strong> — архив со строгой структурой, а HTML — обычный текст.</li>
+    <li>Из HTML можно восстановить презентацию объектами: текст останется текстом, фигуры — фигурами.</li>
+    <li>Просите фиксированный размер слайда, короткие подписи и никаких внешних ресурсов.</li>
+    <li>Проверяйте карточки и схемы: там чаще всего видны расхождения.</li>
+  </ul>
+
+  <div class="cta">
+    <p>Готовы попробовать? На главной есть пример — презентация собирается в два щелчка, без чата и без файла.</p>
+    <a class="btn primary" href="/">Сделать презентацию</a>
+  </div>
+
+</article>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Как сделать презентацию нейросетью и получить редактируемый PowerPoint",
+  "description": "Почему нейросеть присылает презентацию веб-страницей, что просить у чата, чего не просить и что проверить перед сдачей.",
+  "inLanguage": "ru",
+  "url": "https://mpga.kiviuly.ru/guide",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://mpga.kiviuly.ru/guide" },
+  "image": "https://mpga.kiviuly.ru/og.png",
+  "author": { "@type": "Organization", "name": "MPGA", "url": "https://mpga.kiviuly.ru/" },
+  "publisher": { "@type": "Organization", "name": "MPGA", "url": "https://mpga.kiviuly.ru/" },
+  "about": { "@type": "Thing", "name": "Конвертация HTML-презентации в PowerPoint" }
+}
+</script>
+
+</body>
+</html>
