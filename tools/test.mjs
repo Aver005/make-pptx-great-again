@@ -19,6 +19,11 @@ const fail = (name, text) => {
 };
 const pass = (text) => console.log(`    ✓ ${text}`);
 
+if (!existsSync("dist/MPGA.html")) {
+  console.error("нет dist/MPGA.html — сначала соберите: bun run build");
+  process.exit(1);
+}
+
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: true,
