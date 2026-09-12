@@ -106,8 +106,13 @@
           // У линии и произвольного пути рамка — не форма: судить по ней,
           // что лежит под текстом, нельзя.
           if (box.path || box.kind === "line") continue;
-          if (box.grad || !box.fill || (box.alpha != null && box.alpha < 0.9)) continue;
           if (cx < box.x || cx > box.x + box.w || cy < box.y || cy > box.y + box.h) continue;
+          // Под градиентом цвет разный в разных точках — судить не о чем.
+          if (box.grad) {
+            covered = null;
+            continue;
+          }
+          if (!box.fill || (box.alpha != null && box.alpha < 0.9)) continue;
           under = box.fill;
           covered = true;
         }

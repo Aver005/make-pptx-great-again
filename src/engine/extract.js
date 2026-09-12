@@ -256,6 +256,7 @@
       const spins = new Map();
       const order = new Map();
       const anims = new Map();
+      let groupSeq = 0;
 
       // Слой объекта — его место в разметке: кто написан позже, тот выше.
       // ::after получает номер конца всего поддерева, потому что в браузере
@@ -543,7 +544,20 @@
       const pushSvgShape = (el, shape, fade) => {
         const fill = shape.fill ? hex(shape.fill) : null;
         const stroke = shape.stroke ? hex(shape.stroke) : null;
-        if (!fill && !stroke) return;
+        const grad = shape.grad
+          ? {
+              ...shape.grad,
+              stops: shape.grad.stops
+                .map((stop) => {
+                  const color = hex(stop.color);
+                  return color
+                    ? { hex: color.hex, alpha: color.alpha * stop.alpha, pos: stop.pos }
+                    : null;
+                })
+                .filter(Boolean),
+            }
+          : null;
+        if (!fill && !stroke && !(grad && grad.stops.length > 1)) return;
         const dim = shape.kind === "path" ? window.MPGA.svgNormalize(shape) : shape;
         const box = {
           seq: seqOf(el),
@@ -556,6 +570,7 @@
           alpha: (fill ? fill.alpha * shape.fillAlpha : 1) * shape.opacity * fade,
           radius: shape.kind === "ellipse" ? -1 : shape.radius || 0,
         };
+        if (grad && grad.stops.length > 1) box.grad = grad;
         if (shape.kind === "line") {
           box.kind = "line";
           box.flip = (shape.to[0] - shape.from[0]) * (shape.to[1] - shape.from[1]) < 0;
@@ -872,7 +887,13 @@
         const fade = fadeOf(el);
 
         if (svgNative.has(el)) {
+          // Фигуры одной схемы собираются в группу: иначе иконка в PowerPoint
+          // рассыпается на пять кусочков, которые двигаются по отдельности.
+          const group = `${si}-${groupSeq++}`;
+          const before = boxes.length;
           for (const shape of svgNative.get(el)) pushSvgShape(el, shape, fade);
+          if (boxes.length - before > 1)
+            for (let i = before; i < boxes.length; i++) boxes[i].group = group;
           if (el.querySelector("text")) collectSvgText(el, r);
           for (const node of el.querySelectorAll("*")) skip.add(node);
           continue;

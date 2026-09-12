@@ -39,6 +39,7 @@
       const si = slide.index;
       const dy = slide.offsetY || 0;
       let marked = 0;
+      const groups = new Map();
       if (slide.background) s.background = { color: slide.background };
 
       if (slide.backgroundGrad) {
@@ -111,6 +112,12 @@
           if (box.rot) opts.rotate = box.rot;
           if (box.shadow) opts.shadow = shadowOpts(box.shadow);
 
+          if (box.group) {
+            opts.objectName = objName("part", si, marked++);
+            const known = groups.get(box.group);
+            if (known) known.names.push(opts.objectName);
+            else groups.set(box.group, { names: [opts.objectName] });
+          }
           if (box.path) {
             if (!opts.objectName) opts.objectName = objName("path", si, marked++);
             patches.push({
@@ -186,6 +193,10 @@
         }
 
         addTable(s, item.table, toIn, dy);
+      }
+
+      for (const [key, group] of groups) {
+        if (group.names.length > 1) patches.push({ slide: si, group: key, names: group.names });
       }
 
       for (const text of slide.texts) {

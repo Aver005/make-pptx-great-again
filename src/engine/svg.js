@@ -224,10 +224,57 @@
     return Number.isFinite(num) ? num : fallback;
   }
 
-  function paintOf(win, el, name) {
+  // Градиент из <defs> — это тот же градиент, что у блоков вёрстки, только
+  // записанный по-другому. Единицы objectBoundingBox (доли рамки) переносятся,
+  // userSpaceOnUse — нет: там координаты чужой системы.
+  function gradOf(win, svg, id) {
+    const node = svg.querySelector(`#${CSS.escape(id)}`);
+    if (!node) return null;
+    const tag = node.tagName.toLowerCase();
+    if (tag !== "lineargradient" && tag !== "radialgradient") return null;
+    if ((node.getAttribute("gradientUnits") || "objectBoundingBox") !== "objectBoundingBox")
+      return null;
+    if (node.getAttribute("gradientTransform")) return null;
+
+    const stops = [...node.querySelectorAll("stop")].map((stop) => {
+      const st = win.getComputedStyle(stop);
+      const raw = st.stopColor || stop.getAttribute("stop-color") || "#000";
+      const alpha = parseFloat(st.stopOpacity || stop.getAttribute("stop-opacity") || "1");
+      const offset = String(stop.getAttribute("offset") || "0");
+      const pos = offset.includes("%") ? parseFloat(offset) / 100 : parseFloat(offset) || 0;
+      return { color: raw, alpha: Number.isFinite(alpha) ? alpha : 1, pos };
+    });
+    if (stops.length < 2) return null;
+
+    if (tag === "radialgradient") {
+      return {
+        kind: "radial",
+        angle: 0,
+        round: true,
+        center: {
+          x: (attr(node, "cx", 0.5) || 0.5) * 100,
+          y: (attr(node, "cy", 0.5) || 0.5) * 100,
+        },
+        stops,
+      };
+    }
+    const x1 = attr(node, "x1", 0);
+    const y1 = attr(node, "y1", 0);
+    const x2 = attr(node, "x2", 1);
+    const y2 = attr(node, "y2", 0);
+    // Угол CSS считается от «вверх» по часовой — приводим к нему.
+    const angle = (Math.atan2(x2 - x1, y1 - y2) * 180) / Math.PI;
+    return { kind: "linear", angle: ((angle % 360) + 360) % 360, center: { x: 50, y: 50 }, stops };
+  }
+
+  function paintOf(win, el, name, svg) {
     const value = win.getComputedStyle(el).getPropertyValue(name);
     if (!value || value === "none") return null;
-    if (/url\(/i.test(value)) return "unsupported";
+    const link = value.match(/url\(["']?#([^"')]+)/i);
+    if (link) {
+      const grad = gradOf(win, svg, link[1]);
+      return grad ? { grad } : "unsupported";
+    }
     return value;
   }
 
@@ -256,17 +303,25 @@
 
       const style = win.getComputedStyle(el);
       if (style.display === "none" || style.visibility === "hidden") continue;
+      // Фильтр, маска, обрезка и наконечники-маркеры в фигуру не переносятся,
+      // а тихо потерять их хуже, чем честно отдать картинку.
+      const heavy = ["filter", "mask", "clip-path", "marker-start", "marker-mid", "marker-end"];
+      for (const prop of heavy) {
+        const value = style.getPropertyValue(prop) || el.getAttribute(prop);
+        if (value && value !== "none") return null;
+      }
       const map = mapper(el);
       if (!map) return null;
 
-      const fill = paintOf(win, el, "fill");
-      const stroke = paintOf(win, el, "stroke");
+      const fill = paintOf(win, el, "fill", svg);
+      const stroke = paintOf(win, el, "stroke", svg);
       if (fill === "unsupported" || stroke === "unsupported") return null;
       const strokeWidth = parseFloat(style.strokeWidth) || 0;
       const shape = {
-        fill,
+        fill: fill && fill.grad ? null : fill,
+        grad: fill && fill.grad ? fill.grad : null,
         fillAlpha: parseFloat(style.fillOpacity || "1"),
-        stroke,
+        stroke: stroke && stroke.grad ? null : stroke,
         strokeAlpha: parseFloat(style.strokeOpacity || "1"),
         strokeW: stroke ? strokeWidth * map.scale : 0,
         dash: style.strokeDasharray && style.strokeDasharray !== "none" ? "dash" : null,
@@ -275,7 +330,7 @@
         join: style.strokeLinejoin === "round" ? "rnd" : null,
         opacity: parseFloat(style.opacity || "1"),
       };
-      if (!shape.fill && !shape.stroke) continue;
+      if (!shape.fill && !shape.grad && !shape.stroke) continue;
 
       if (tag === "rect") {
         const [x, y] = map.point(attr(el, "x"), attr(el, "y"));

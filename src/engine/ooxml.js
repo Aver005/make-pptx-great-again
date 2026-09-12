@@ -250,6 +250,68 @@
     );
   }
 
+  // Группа фигур. Рамка группы совпадает с рамкой детей (chOff/chExt равны
+  // off/ext), поэтому координаты внутри пересчитывать не нужно — дети
+  // переезжают в группу как есть.
+  function blockOf(xml, name) {
+    const at = xml.indexOf(`name="${name}"`);
+    if (at < 0) return null;
+    const start = xml.lastIndexOf("<p:sp>", at);
+    const end = xml.indexOf("</p:sp>", at);
+    if (start < 0 || end < 0) return null;
+    return { start, end: end + "</p:sp>".length };
+  }
+
+  function extentOf(block) {
+    const off = block.match(/<a:off x="(-?\d+)" y="(-?\d+)"\/>/);
+    const ext = block.match(/<a:ext cx="(\d+)" cy="(\d+)"\/>/);
+    if (!off || !ext) return null;
+    const x = Number(off[1]);
+    const y = Number(off[2]);
+    return { x, y, right: x + Number(ext[1]), bottom: y + Number(ext[2]) };
+  }
+
+  function makeGroup(xml, names, id) {
+    const blocks = [];
+    for (const name of names) {
+      const at = blockOf(xml, name);
+      if (!at) return xml;
+      blocks.push({ name, ...at, text: xml.slice(at.start, at.end) });
+    }
+    blocks.sort((a, b) => a.start - b.start);
+    // Резать можно только подряд идущие фигуры: иначе в группу затесалось бы
+    // чужое, а порядок наложения поехал бы.
+    for (let i = 1; i < blocks.length; i++) {
+      if (xml.slice(blocks[i - 1].end, blocks[i].start).trim() !== "") return xml;
+    }
+
+    let box = null;
+    for (const block of blocks) {
+      const ext = extentOf(block.text);
+      if (!ext) return xml;
+      box = box
+        ? {
+            x: Math.min(box.x, ext.x),
+            y: Math.min(box.y, ext.y),
+            right: Math.max(box.right, ext.right),
+            bottom: Math.max(box.bottom, ext.bottom),
+          }
+        : ext;
+    }
+    if (!box) return xml;
+
+    const frame =
+      `<a:off x="${box.x}" y="${box.y}"/><a:ext cx="${box.right - box.x}" cy="${box.bottom - box.y}"/>` +
+      `<a:chOff x="${box.x}" y="${box.y}"/><a:chExt cx="${box.right - box.x}" cy="${box.bottom - box.y}"/>`;
+    const group =
+      "<p:grpSp><p:nvGrpSpPr>" +
+      `<p:cNvPr id="${id}" name="Рисунок ${id}"/><p:cNvGrpSpPr/><p:nvPr/>` +
+      `</p:nvGrpSpPr><p:grpSpPr><a:xfrm>${frame}</a:xfrm></p:grpSpPr>` +
+      blocks.map((b) => b.text).join("") +
+      "</p:grpSp>";
+    return xml.slice(0, blocks[0].start) + group + xml.slice(blocks[blocks.length - 1].end);
+  }
+
   function shapeIdOf(xml, name) {
     const at = xml.indexOf(`name="${name}"`);
     if (at < 0) return null;
@@ -301,6 +363,12 @@
             xml = reshape(xml, patch.name, cornerGeomXml(patch.corners, patch.size));
           if (patch.body) xml = retypeBody(xml, patch.name, patch.body);
           if (patch.cap || patch.join) xml = retypeLine(xml, patch.name, patch.cap, patch.join);
+        }
+
+        let groupId = 9000;
+        for (const patch of patches) {
+          if (patch.slide !== slide.index || !patch.names) continue;
+          xml = makeGroup(xml, patch.names, groupId++);
         }
 
         const steps = [];
