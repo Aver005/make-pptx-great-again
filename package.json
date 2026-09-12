@@ -14,7 +14,9 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",
-    "format:check": "oxfmt --check ."
+    "format:check": "oxfmt --check .",
+    "seo": "bun tools/seo-check.mjs",
+    "og": "bun tools/gen-og.mjs"
   },
   "devDependencies": {
     "oxfmt": "^0.67.0",
